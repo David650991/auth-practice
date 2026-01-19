@@ -1,15 +1,21 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from dotenv import load_dotenv
+
+# Cargamos las variables del archivo .env
+load_dotenv()
 
 app = Flask(__name__)
 
-# Configuración de Seguridad
-app.config['SECRET_KEY'] = 'clave-secreta-temporal-para-desarrollo'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+# Configuración de Seguridad usando Variables de Entorno
+# Si no encuentra la clave en .env, usará la segunda opción por defecto (solo para evitar crasheos)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-secret-key')
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///site.db')
 
 # Inicialización de Extensiones
 db = SQLAlchemy(app)
@@ -18,14 +24,12 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
 # Inicialización del Escudo (Limiter)
-# get_remote_address usa la IP del usuario para identificarlo
 limiter = Limiter(
     get_remote_address, 
     app=app, 
-    default_limits=["200 per day", "50 per hour"], # Límite general suave
-    storage_uri="memory://" # Guardamos los conteos en memoria RAM por velocidad
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://"
 )
 
-# Importamos rutas y modelos al final
 from app import routes
 from app import models
