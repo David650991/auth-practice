@@ -1,18 +1,21 @@
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+from flask_login import LoginManager
 
-# Inicialización del objeto Flask
 app = Flask(__name__)
 
-# Configuración de seguridad básica (llave secreta necesaria para sesiones futuras)
+# Configuración de Seguridad
 app.config['SECRET_KEY'] = 'clave-secreta-temporal-para-desarrollo'
+# Configuración de la Base de Datos (se creará un archivo site.db local)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 
-# Inicialización de herramientas de encriptación
+# Inicialización de Extensiones
+db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login' # Si alguien intenta entrar a zona segura sin permiso, lo manda aquí
 
-# Base de datos en memoria (Simulada)
-# Al estar aquí, es accesible por todo el paquete
-users_db = {}
-
-# Importamos las rutas al final para evitar referencias circulares
+# Importamos rutas y modelos al final para evitar errores circulares
 from app import routes
+from app import models
