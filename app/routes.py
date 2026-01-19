@@ -1,5 +1,5 @@
 from flask import render_template, url_for, flash, redirect, request
-from app import app, db, bcrypt
+from app import app, db, bcrypt, limiter
 from app.models import User
 from flask_login import login_user, current_user, logout_user, login_required
 
@@ -9,6 +9,7 @@ def home():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
+    # Si ya está logueado, lo mandamos a casa
     if current_user.is_authenticated:
         return redirect(url_for('home'))
         
@@ -33,7 +34,9 @@ def register():
     return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")  # <--- AQUÍ ESTÁ EL ESCUDO DE SEGURIDAD
 def login():
+    # Si ya está logueado, lo mandamos a casa
     if current_user.is_authenticated:
         return redirect(url_for('home'))
         
@@ -56,7 +59,7 @@ def login():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    return f"<h1>Panel Seguro</h1><p>Hola, {current_user.username}. Estás logueado permanentemente hasta que salgas.</p><a href='/logout'>Cerrar Sesión</a>"
+    return f"<h1>Panel Seguro</h1><p>Hola, {current_user.username}. Estás logueado permanentemente.</p><a href='/logout'>Cerrar Sesión</a>"
 
 @app.route('/logout')
 def logout():
