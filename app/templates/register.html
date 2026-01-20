@@ -9,6 +9,8 @@
         {% for category, message in messages %}
           {% if category == 'danger' %}
             <div style="color: red; font-weight: bold;">⚠ {{ message }}</div>
+          {% elif category == 'info' %}
+             <div style="color: blue; font-weight: bold; border: 2px dashed blue; padding: 10px; margin: 10px;">📱 {{ message }}</div>
           {% else %}
             <div style="color: green; font-weight: bold;">✔ {{ message }}</div>
           {% endif %}
@@ -20,6 +22,8 @@
         <input type="text" name="username" placeholder="Usuario" required>
         <br><br>
         <input type="email" name="email" placeholder="Correo Electrónico" required>
+        <br><br>
+        <input type="tel" name="phone" placeholder="Celular (ej: +52...)" required>
         <br><br>
         <input type="password" name="password" placeholder="Contraseña Segura" required autocomplete="new-password">
         <p style="font-size: 12px; color: gray;">

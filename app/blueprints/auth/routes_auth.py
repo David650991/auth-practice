@@ -3,7 +3,6 @@ from flask_login import login_user, logout_user, current_user
 from app import db, bcrypt, limiter
 from app.models import User
 from .utils import send_confirmation_email
-# Importamos el Blueprint 'auth' desde el __init__ de esta carpeta
 from . import auth 
 import re
 from datetime import datetime
@@ -15,9 +14,11 @@ def register():
     
     if request.method == 'POST':
         username = request.form.get('username')
-        email = request.form.get('email').lower() 
+        email = request.form.get('email').lower()
+        phone = request.form.get('phone') # <--- NUEVO
         password = request.form.get('password')
         
+        # Validaciones
         if len(password) < 8 or not re.search(r"[A-Z]", password) or \
            not re.search(r"\d", password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
             flash('La contraseña no cumple los requisitos de seguridad.', 'danger')
@@ -30,15 +31,21 @@ def register():
         if User.query.filter_by(email=email).first():
             flash('Ese correo ya está registrado.', 'danger')
             return redirect(url_for('auth.register'))
-            
+
+        # Validación básica de teléfono (opcional, se puede mejorar con Regex)
+        if User.query.filter_by(phone_number=phone).first():
+            flash('Ese número de teléfono ya está registrado.', 'danger')
+            return redirect(url_for('auth.register'))
+
         hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
         
-        user = User(username=username, email=email, password=hashed_pw, confirmed=False)
+        # Guardamos teléfono
+        user = User(username=username, email=email, phone_number=phone, password=hashed_pw, confirmed=False)
         db.session.add(user)
         db.session.commit()
         
         send_confirmation_email(user)
-        flash('Cuenta creada. ¡Revisa tu correo para activar tu cuenta antes de entrar!', 'info')
+        flash('Cuenta creada. ¡Revisa tu correo para activar tu cuenta!', 'info')
         return redirect(url_for('auth.login'))
         
     return render_template('register.html')

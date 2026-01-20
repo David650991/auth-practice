@@ -2,7 +2,7 @@ from flask import render_template, redirect, url_for, flash, request, session
 from flask_login import login_user, login_required, current_user
 from app import db, bcrypt, limiter
 from app.models import User
-from .utils import send_reset_email
+from .utils import send_reset_email, send_sms_code # <--- IMPORTAR send_sms_code
 from . import auth # Importamos el Blueprint compartido
 import pyotp, qrcode, io, base64, secrets, re
 
@@ -73,6 +73,48 @@ def reset_token(token):
         flash('Contraseña actualizada. Inicia sesión.', 'success')
         return redirect(url_for('auth.login'))
     return render_template('reset_token.html')
+
+# --- NUEVAS RUTAS PARA SMS ---
+
+@auth.route("/send-sms-verification")
+@login_required
+@limiter.limit("3 per minute") # Limitamos el envío para evitar spam
+def send_sms_verification():
+    if not current_user.phone_number:
+        flash('No tienes un número de teléfono registrado.', 'warning')
+        return redirect(url_for('main.dashboard'))
+    
+    if current_user.is_phone_verified:
+        flash('Tu teléfono ya está verificado.', 'info')
+        return redirect(url_for('main.dashboard'))
+
+    # Generamos y simulamos el envío
+    code = send_sms_code(current_user.phone_number)
+    
+    # Guardamos el código en la sesión (temporalmente) para compararlo después
+    # En producción real usaríamos Redis o BD con expiración
+    session['sms_validation_code'] = code
+    
+    return redirect(url_for('auth.verify_sms_page'))
+
+@auth.route("/verify-sms", methods=['GET', 'POST'])
+@login_required
+def verify_sms_page():
+    if request.method == 'POST':
+        input_code = request.form.get('sms_code')
+        stored_code = session.get('sms_validation_code')
+        
+        if input_code and stored_code and input_code == stored_code:
+            # ÉXITO: El código coincide
+            current_user.is_phone_verified = True
+            db.session.commit()
+            session.pop('sms_validation_code', None) # Limpiamos sesión
+            flash('¡Teléfono verificado exitosamente!', 'success')
+            return redirect(url_for('main.dashboard'))
+        else:
+            flash('Código SMS incorrecto. Intenta de nuevo.', 'danger')
+            
+    return render_template('verify_sms.html')
 
 @auth.route("/enable-2fa")
 @login_required

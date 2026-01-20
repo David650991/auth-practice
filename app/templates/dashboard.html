@@ -3,18 +3,45 @@
 <head><title>Panel Seguro</title></head>
 <body style="font-family: sans-serif; text-align: center; padding: 50px;">
     <h1>Panel de Control Blindado</h1>
-    <p>Bienvenido, <strong>{{ usuario }}</strong>.</p>
-    <p>Estado de Seguridad 2FA: <strong>{{ estado_2fa }}</strong></p>
     
-    <hr>
-    {% if estado_2fa == "DESACTIVADO" %}
-        <p style="color: orange;">⚠ Tu cuenta no tiene seguridad máxima.</p>
-        <a href="{{ url_for('auth.enable_2fa') }}"><button style="background: purple; color: white; padding: 10px;">ACTIVAR 2FA (QR)</button></a>
-    {% else %}
-        <p style="color: green;">✔ Tu cuenta está protegida cuánticamente.</p>
-    {% endif %}
-    <hr>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+            <div style="color: {{ 'red' if category == 'danger' else 'green' }}; margin-bottom: 20px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div style="border: 1px solid #ccc; padding: 20px; max-width: 600px; margin: 0 auto;">
+        <p>Bienvenido, <strong>{{ usuario }}</strong>.</p>
+        
+        <hr>
+        <h3>Estado de Seguridad</h3>
+        
+        <p>Autenticador (App): 
+            {% if estado_2fa == "ACTIVADO" %}
+                <span style="color: green; font-weight: bold;">✔ ACTIVO</span>
+            {% else %}
+                <span style="color: orange; font-weight: bold;">⚠ INACTIVO</span>
+                <br>
+                <a href="{{ url_for('auth.enable_2fa') }}"><button>Configurar App 2FA</button></a>
+            {% endif %}
+        </p>
+
+        <p>Teléfono (SMS):
+            {% if current_user.is_phone_verified %}
+                <span style="color: green; font-weight: bold;">✔ VERIFICADO</span>
+            {% else %}
+                <span style="color: red; font-weight: bold;">✕ NO VERIFICADO</span>
+                <br>
+                <a href="{{ url_for('auth.send_sms_verification') }}"><button style="background: orange;">Verificar Ahora (SMS)</button></a>
+            {% endif %}
+        </p>
+    </div>
     
+    <br><br>
     <a href="{{ url_for('auth.logout') }}">Cerrar Sesión</a>
 </body>
 </html>
