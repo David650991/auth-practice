@@ -1,5 +1,5 @@
 REPORTE DE AUDITORÍA DE CÓDIGO
-Fecha: 01/19/2026 15:20:29
+Fecha: 01/20/2026 10:07:40
 Directorio Raíz: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice
 ==============================================================================
 
@@ -32,7 +32,7 @@ EXTENSIÓN: .txt
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\requirements.txt
-TAMAÑO: 434 bytes
+TAMAÑO: 450 bytes
 EXTENSIÓN: .txt
 ################################################################################
 bcrypt==5.0.0
@@ -52,6 +52,7 @@ limits==5.6.0
 MarkupSafe==3.0.3
 ordered-set==4.1.0
 packaging==25.0
+pillow==12.1.0
 pyotp==2.9.0
 python-dotenv==1.2.1
 qrcode==8.2
@@ -64,26 +65,34 @@ wrapt==2.0.1
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\run.py
-TAMAÑO: 136 bytes
+TAMAÑO: 103 bytes
 EXTENSIÓN: .py
 ################################################################################
-from app import app
+from app import create_app
+
+app = create_app()
 
 if __name__ == '__main__':
-    # Debug activado para ver errores mientras desarrollamos
     app.run(debug=True)
 
 
 ################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\SECURITY_MANUAL.md
+TAMAÑO: 2387 bytes
+EXTENSIÓN: .md
+################################################################################
+[ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\__init__.py
-TAMAÑO: 1064 bytes
+TAMAÑO: 1317 bytes
 EXTENSIÓN: .py
 ################################################################################
 [ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\models.py
-TAMAÑO: 575 bytes
+TAMAÑO: 567 bytes
 EXTENSIÓN: .py
 ################################################################################
 from app import db, login_manager
@@ -97,23 +106,61 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
-    # NUEVA COLUMNA: Aquí guardaremos el secreto del Authenticator
-    otp_secret = db.Column(db.String(32), nullable=True) 
+    otp_secret = db.Column(db.String(32), nullable=True)
+    backup_codes = db.Column(db.String(250), nullable=True) 
 
     def __repr__(self):
         return f"User('{self.username}')"
 
 
 ################################################################################
-RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\routes.py
-TAMAÑO: 3651 bytes
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth.py
+TAMAÑO: 3749 bytes
 EXTENSIÓN: .py
 ################################################################################
 [ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
 
 ################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\main.py
+TAMAÑO: 570 bytes
+EXTENSIÓN: .py
+################################################################################
+from flask import Blueprint, render_template
+from flask_login import login_required, current_user
+
+# Definimos el Blueprint 'main'
+main = Blueprint('main', __name__)
+
+@main.route("/")
+@main.route("/home")
+def home():
+    return render_template('home.html')
+
+@main.route("/dashboard")
+@login_required
+def dashboard():
+    # Lógica para mostrar estado de 2FA basada en tus templates
+    estado_2fa = "ACTIVADO" if current_user.otp_secret else "DESACTIVADO"
+    return render_template('dashboard.html', usuario=current_user.username, estado_2fa=estado_2fa)
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\__pycache__\auth.cpython-311.pyc
+TAMAÑO: 6729 bytes
+EXTENSIÓN: .pyc
+################################################################################
+[ARCHIVO BINARIO - OMITIDO PARA LECTURA CLARA]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\__pycache__\main.cpython-311.pyc
+TAMAÑO: 1238 bytes
+EXTENSIÓN: .pyc
+################################################################################
+[ARCHIVO BINARIO - OMITIDO PARA LECTURA CLARA]
+
+################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\dashboard.html
-TAMAÑO: 776 bytes
+TAMAÑO: 818 bytes
 EXTENSIÓN: .html
 ################################################################################
 <!DOCTYPE html>
@@ -127,42 +174,27 @@ EXTENSIÓN: .html
     <hr>
     {% if estado_2fa == "DESACTIVADO" %}
         <p style="color: orange;">⚠ Tu cuenta no tiene seguridad máxima.</p>
-        <a href="/enable-2fa"><button style="background: purple; color: white; padding: 10px;">ACTIVAR 2FA (QR)</button></a>
+        <a href="{{ url_for('auth.enable_2fa') }}"><button style="background: purple; color: white; padding: 10px;">ACTIVAR 2FA (QR)</button></a>
     {% else %}
         <p style="color: green;">✔ Tu cuenta está protegida cuánticamente.</p>
     {% endif %}
     <hr>
     
-    <a href='/logout'>Cerrar Sesión</a>
+    <a href="{{ url_for('auth.logout') }}">Cerrar Sesión</a>
 </body>
 </html>
 
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\enable_2fa.html
-TAMAÑO: 673 bytes
+TAMAÑO: 1413 bytes
 EXTENSIÓN: .html
 ################################################################################
-<!DOCTYPE html>
-<html lang="es">
-<head><title>Activar 2FA</title></head>
-<body style="font-family: sans-serif; text-align: center; padding: 50px;">
-    <h2>Configuración de Doble Factor</h2>
-    <p>Escanea este código con <strong>Google Authenticator</strong> o tu app favorita:</p>
-    
-    <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" style="border: 5px solid white; box-shadow: 0 0 10px gray;">
-    
-    <p>O ingresa este código manualmente: <code>{{ secret }}</code></p>
-    
-    <p>Una vez escaneado, verás un código de 6 dígitos en tu celular.</p>
-    <a href="/dashboard"><button>Listo, ya lo escaneé</button></a>
-</body>
-</html>
-
+[ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\home.html
-TAMAÑO: 359 bytes
+TAMAÑO: 401 bytes
 EXTENSIÓN: .html
 ################################################################################
 <!DOCTYPE html>
@@ -171,25 +203,54 @@ EXTENSIÓN: .html
 <body style="font-family: sans-serif; text-align: center; padding: 50px;">
     <h1>Sistema de Seguridad Modular</h1>
     <p>Selecciona una acción:</p>
-    <a href="/register"><button>Registrarse</button></a>
-    <a href="/login"><button>Iniciar Sesión</button></a>
+    <a href="{{ url_for('auth.register') }}"><button>Registrarse</button></a>
+    <a href="{{ url_for('auth.login') }}"><button>Iniciar Sesión</button></a>
 </body>
 </html>
 
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\login.html
-TAMAÑO: 1117 bytes
+TAMAÑO: 1106 bytes
 EXTENSIÓN: .html
 ################################################################################
 [ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\register.html
-TAMAÑO: 1459 bytes
+TAMAÑO: 1102 bytes
 EXTENSIÓN: .html
 ################################################################################
 [ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\verify_2fa.html
+TAMAÑO: 977 bytes
+EXTENSIÓN: .html
+################################################################################
+<!DOCTYPE html>
+<html lang="es">
+<head><title>Verificación de Seguridad</title></head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+    <h2>Verificación de Identidad</h2>
+    <p>Ingresa el token de tu app <strong>O</strong> un código de recuperación.</p>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="color: red;">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.verify_2fa_login') }}">
+        <input type="text" name="token" placeholder="Código" required style="font-size: 20px; text-align: center; letter-spacing: 5px; padding: 5px;">
+        <br><br>
+        <button type="submit" style="background-color: purple; color: white; padding: 10px 20px; cursor: pointer;">Validar Acceso</button>
+    </form>
+</body>
+</html>
+
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\instance\site.db
@@ -202,28 +263,33 @@ EXTENSIÓN: .db
 ESTRUCTURA VISUAL DE CARPETAS (TREE FILTRADO - SOLO ARCHIVOS IMPORTANTES)
 ================================================================================
 ├── [app]
+│   ├── [blueprints]
+│   │   ├── [__pycache__]
+│   │   ├── auth.py
+│   │   ├── main.py
 │   ├── [templates]
 │   │   ├── dashboard.html
 │   │   ├── enable_2fa.html
 │   │   ├── home.html
 │   │   ├── login.html
 │   │   ├── register.html
+│   │   ├── verify_2fa.html
 │   ├── __init__.py
 │   ├── models.py
-│   ├── routes.py
 ├── [instance]
 ├── .env
 ├── .gitignore
 ├── auditoria_completa_proyecto.txt
 ├── requirements.txt
 ├── run.py
+├── SECURITY_MANUAL.md
 
 ================================================================================
 RESUMEN
 ================================================================================
-Total de archivos encontrados: 2920
-Archivos procesados (contenido incluido): 14
-Archivos omitidos (binarios o en rutas ignoradas): 2906
+Total de archivos encontrados: 3144
+Archivos procesados (contenido incluido): 17
+Archivos omitidos (binarios o en rutas ignoradas): 3127
 Rutas ignoradas:
   - C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\__pycache__
   - C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\venv

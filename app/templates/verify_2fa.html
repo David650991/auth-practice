@@ -2,17 +2,21 @@
 <html lang="es">
 <head><title>Verificación de Seguridad</title></head>
 <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-    <h2>Autenticación de Dos Factores</h2>
-    <p>Tu cuenta está protegida. Ingresa el código de 6 dígitos de tu aplicación.</p>
+    <h2>Verificación de Identidad</h2>
+    <p>Ingresa el token de tu app <strong>O</strong> un código de recuperación.</p>
     
-    {% if error %}
-        <p style="color: red;">{{ error }}</p>
-    {% endif %}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div style="color: red;">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
-    <form method="POST">
-        <input type="text" name="token" placeholder="Ej: 123456" required style="font-size: 20px; text-align: center; letter-spacing: 5px;">
+    <form method="POST" action="{{ url_for('auth.verify_2fa_login') }}">
+        <input type="text" name="token" placeholder="Código" required style="font-size: 20px; text-align: center; letter-spacing: 5px; padding: 5px;">
         <br><br>
-        <button type="submit" style="background-color: purple; color: white; padding: 10px 20px;">Verificar</button>
+        <button type="submit" style="background-color: purple; color: white; padding: 10px 20px; cursor: pointer;">Validar Acceso</button>
     </form>
 </body>
 </html>

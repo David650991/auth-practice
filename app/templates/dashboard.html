@@ -9,12 +9,12 @@
     <hr>
     {% if estado_2fa == "DESACTIVADO" %}
         <p style="color: orange;">⚠ Tu cuenta no tiene seguridad máxima.</p>
-        <a href="/enable-2fa"><button style="background: purple; color: white; padding: 10px;">ACTIVAR 2FA (QR)</button></a>
+        <a href="{{ url_for('auth.enable_2fa') }}"><button style="background: purple; color: white; padding: 10px;">ACTIVAR 2FA (QR)</button></a>
     {% else %}
         <p style="color: green;">✔ Tu cuenta está protegida cuánticamente.</p>
     {% endif %}
     <hr>
     
-    <a href='/logout'>Cerrar Sesión</a>
+    <a href="{{ url_for('auth.logout') }}">Cerrar Sesión</a>
 </body>
 </html>

@@ -1,35 +1,43 @@
-import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
+from flask_bcrypt import Bcrypt  # <--- CORREGIDO: Importamos Bcrypt, no FlaskBcrypt
 from flask_login import LoginManager
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+import os
 from dotenv import load_dotenv
 
-# Cargamos las variables del archivo .env
+# Cargar variables de entorno
 load_dotenv()
 
-app = Flask(__name__)
+# Inicialización de extensiones
+db = SQLAlchemy()
+bcrypt = Bcrypt()  # <--- CORREGIDO: Inicializamos Bcrypt()
+login_manager = LoginManager()
+login_manager.login_view = 'auth.login'
+login_manager.login_message_category = 'info'
 
-# Configuración de Seguridad usando Variables de Entorno
-# Si no encuentra la clave en .env, usará la segunda opción por defecto (solo para evitar crasheos)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'fallback-secret-key')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///site.db')
+limiter = Limiter(key_func=get_remote_address)
 
-# Inicialización de Extensiones
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
+def create_app():
+    app = Flask(__name__)
+    
+    # Configuración
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-default')
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///site.db')
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Inicialización del Escudo (Limiter)
-limiter = Limiter(
-    get_remote_address, 
-    app=app, 
-    default_limits=["200 per day", "50 per hour"],
-    storage_uri="memory://"
-)
+    # Inicializar extensiones con la app
+    db.init_app(app)
+    bcrypt.init_app(app)
+    login_manager.init_app(app)
+    limiter.init_app(app)
 
-from app import routes
-from app import models
+    # Importar y registrar Blueprints
+    from app.blueprints.main import main
+    from app.blueprints.auth import auth
+
+    app.register_blueprint(main)
+    app.register_blueprint(auth)
+
+    return app

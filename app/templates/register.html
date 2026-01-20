@@ -1,37 +1,33 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Registro - Auth Practice</title>
-    <style>
-        body { font-family: sans-serif; display: flex; justify-content: center; padding-top: 50px; background-color: #f0f2f5; }
-        .container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 300px; }
-        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; box-sizing: border-box; }
-        button { width: 100%; padding: 10px; background-color: #28a745; color: white; border: none; cursor: pointer; }
-        button:hover { background-color: #218838; }
-        .alert { color: red; font-size: 0.9em; text-align: center;}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h2 style="text-align: center;">Crear Cuenta</h2>
-        
-        {% if error %}
-            <p class="alert">{{ error }}</p>
-        {% endif %}
+<head><title>Registro Blindado</title></head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+    <h2>Crear Cuenta Nueva</h2>
 
-        <form action="/register" method="POST">
-            <label>Usuario:</label>
-            <input type="text" name="username" required>
-            
-            <label>Contraseña:</label>
-            <input type="password" name="password" required>
-            
-            <button type="submit">Registrarse</button>
-        </form>
-        <p style="text-align: center; font-size: 0.8em;">
-            <a href="/">Volver al inicio</a>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          {% if category == 'danger' %}
+            <div style="color: red; font-weight: bold;">⚠ {{ message }}</div>
+          {% else %}
+            <div style="color: green; font-weight: bold;">✔ {{ message }}</div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('auth.register') }}">
+        <input type="text" name="username" placeholder="Usuario" required>
+        <br><br>
+        <input type="password" name="password" placeholder="Contraseña Segura" required autocomplete="new-password">
+        <p style="font-size: 12px; color: gray;">
+            Requisito: Min 8 caracteres, 1 mayúscula, 1 número, 1 símbolo.
         </p>
-    </div>
+        <br>
+        <button type="submit">Registrarme</button>
+    </form>
+    
+    <p>¿Ya tienes cuenta? <a href="{{ url_for('auth.login') }}">Inicia Sesión</a></p>
+    <p><a href="{{ url_for('main.home') }}">Volver al Inicio</a></p>
 </body>
 </html>
