@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><title>Verificación de Seguridad</title></head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+    <h2>Autenticación de Dos Factores</h2>
+    <p>Tu cuenta está protegida. Ingresa el código de 6 dígitos de tu aplicación.</p>
+    
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <input type="text" name="token" placeholder="Ej: 123456" required style="font-size: 20px; text-align: center; letter-spacing: 5px;">
+        <br><br>
+        <button type="submit" style="background-color: purple; color: white; padding: 10px 20px;">Verificar</button>
+    </form>
+</body>
+</html>

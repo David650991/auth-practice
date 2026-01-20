@@ -1,0 +1,229 @@
+REPORTE DE AUDITORÍA DE CÓDIGO
+Fecha: 01/19/2026 15:20:29
+Directorio Raíz: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice
+==============================================================================
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\.env
+TAMAÑO: 119 bytes
+EXTENSIÓN: .env
+################################################################################
+SECRET_KEY=una-clave-super-secreta-y-larga-que-nadie-adivinara-!@#123
+FLASK_DEBUG=True
+DATABASE_URL=sqlite:///site.db
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\.gitignore
+TAMAÑO: 25 bytes
+EXTENSIÓN: .gitignore
+################################################################################
+venv/
+__pycache__/
+.env
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\auditoria_completa_proyecto.txt
+TAMAÑO: 232 bytes
+EXTENSIÓN: .txt
+################################################################################
+[ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\requirements.txt
+TAMAÑO: 434 bytes
+EXTENSIÓN: .txt
+################################################################################
+bcrypt==5.0.0
+blinker==1.9.0
+click==8.3.1
+colorama==0.4.6
+Deprecated==1.3.1
+Flask==3.1.2
+Flask-Bcrypt==1.0.1
+Flask-Limiter==4.1.1
+Flask-Login==0.6.3
+Flask-SQLAlchemy==3.1.1
+greenlet==3.3.0
+itsdangerous==2.2.0
+Jinja2==3.1.6
+limits==5.6.0
+MarkupSafe==3.0.3
+ordered-set==4.1.0
+packaging==25.0
+pyotp==2.9.0
+python-dotenv==1.2.1
+qrcode==8.2
+SQLAlchemy==2.0.45
+typing_extensions==4.15.0
+Werkzeug==3.1.5
+wrapt==2.0.1
+
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\run.py
+TAMAÑO: 136 bytes
+EXTENSIÓN: .py
+################################################################################
+from app import app
+
+if __name__ == '__main__':
+    # Debug activado para ver errores mientras desarrollamos
+    app.run(debug=True)
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\__init__.py
+TAMAÑO: 1064 bytes
+EXTENSIÓN: .py
+################################################################################
+[ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\models.py
+TAMAÑO: 575 bytes
+EXTENSIÓN: .py
+################################################################################
+from app import db, login_manager
+from flask_login import UserMixin
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
+    # NUEVA COLUMNA: Aquí guardaremos el secreto del Authenticator
+    otp_secret = db.Column(db.String(32), nullable=True) 
+
+    def __repr__(self):
+        return f"User('{self.username}')"
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\routes.py
+TAMAÑO: 3651 bytes
+EXTENSIÓN: .py
+################################################################################
+[ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\dashboard.html
+TAMAÑO: 776 bytes
+EXTENSIÓN: .html
+################################################################################
+<!DOCTYPE html>
+<html lang="es">
+<head><title>Panel Seguro</title></head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+    <h1>Panel de Control Blindado</h1>
+    <p>Bienvenido, <strong>{{ usuario }}</strong>.</p>
+    <p>Estado de Seguridad 2FA: <strong>{{ estado_2fa }}</strong></p>
+    
+    <hr>
+    {% if estado_2fa == "DESACTIVADO" %}
+        <p style="color: orange;">⚠ Tu cuenta no tiene seguridad máxima.</p>
+        <a href="/enable-2fa"><button style="background: purple; color: white; padding: 10px;">ACTIVAR 2FA (QR)</button></a>
+    {% else %}
+        <p style="color: green;">✔ Tu cuenta está protegida cuánticamente.</p>
+    {% endif %}
+    <hr>
+    
+    <a href='/logout'>Cerrar Sesión</a>
+</body>
+</html>
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\enable_2fa.html
+TAMAÑO: 673 bytes
+EXTENSIÓN: .html
+################################################################################
+<!DOCTYPE html>
+<html lang="es">
+<head><title>Activar 2FA</title></head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+    <h2>Configuración de Doble Factor</h2>
+    <p>Escanea este código con <strong>Google Authenticator</strong> o tu app favorita:</p>
+    
+    <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" style="border: 5px solid white; box-shadow: 0 0 10px gray;">
+    
+    <p>O ingresa este código manualmente: <code>{{ secret }}</code></p>
+    
+    <p>Una vez escaneado, verás un código de 6 dígitos en tu celular.</p>
+    <a href="/dashboard"><button>Listo, ya lo escaneé</button></a>
+</body>
+</html>
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\home.html
+TAMAÑO: 359 bytes
+EXTENSIÓN: .html
+################################################################################
+<!DOCTYPE html>
+<html lang="es">
+<head><title>Inicio</title></head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+    <h1>Sistema de Seguridad Modular</h1>
+    <p>Selecciona una acción:</p>
+    <a href="/register"><button>Registrarse</button></a>
+    <a href="/login"><button>Iniciar Sesión</button></a>
+</body>
+</html>
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\login.html
+TAMAÑO: 1117 bytes
+EXTENSIÓN: .html
+################################################################################
+[ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\register.html
+TAMAÑO: 1459 bytes
+EXTENSIÓN: .html
+################################################################################
+[ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\instance\site.db
+TAMAÑO: 12288 bytes
+EXTENSIÓN: .db
+################################################################################
+[ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+================================================================================
+ESTRUCTURA VISUAL DE CARPETAS (TREE FILTRADO - SOLO ARCHIVOS IMPORTANTES)
+================================================================================
+├── [app]
+│   ├── [templates]
+│   │   ├── dashboard.html
+│   │   ├── enable_2fa.html
+│   │   ├── home.html
+│   │   ├── login.html
+│   │   ├── register.html
+│   ├── __init__.py
+│   ├── models.py
+│   ├── routes.py
+├── [instance]
+├── .env
+├── .gitignore
+├── auditoria_completa_proyecto.txt
+├── requirements.txt
+├── run.py
+
+================================================================================
+RESUMEN
+================================================================================
+Total de archivos encontrados: 2920
+Archivos procesados (contenido incluido): 14
+Archivos omitidos (binarios o en rutas ignoradas): 2906
+Rutas ignoradas:
+  - C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\__pycache__
+  - C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\venv

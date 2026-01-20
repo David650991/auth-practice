@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><title>Activar 2FA</title></head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+    <h2>Configuración de Doble Factor</h2>
+    <p>Escanea este código con <strong>Google Authenticator</strong> o tu app favorita:</p>
+    
+    <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" style="border: 5px solid white; box-shadow: 0 0 10px gray;">
+    
+    <p>O ingresa este código manualmente: <code>{{ secret }}</code></p>
+    
+    <p>Una vez escaneado, verás un código de 6 dígitos en tu celular.</p>
+    <a href="/dashboard"><button>Listo, ya lo escaneé</button></a>
+</body>
+</html>
