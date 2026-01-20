@@ -1,16 +1,24 @@
 REPORTE DE AUDITORÍA DE CÓDIGO
-Fecha: 01/20/2026 10:07:40
+Fecha: 01/20/2026 13:05:13
 Directorio Raíz: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice
 ==============================================================================
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\.env
-TAMAÑO: 119 bytes
+TAMAÑO: 363 bytes
 EXTENSIÓN: .env
 ################################################################################
 SECRET_KEY=una-clave-super-secreta-y-larga-que-nadie-adivinara-!@#123
 FLASK_DEBUG=True
 DATABASE_URL=sqlite:///site.db
+
+# Credenciales del SERVIDOR (El cartero)
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USERNAME=david650991@gmail.com
+# REEMPLAZA ABAJO CON TU CONTRASEÑA DE APLICACIÓN DE 16 LETRAS
+MAIL_PASSWORD=zeuq lmiz wrgd pgwb
 
 
 ################################################################################
@@ -31,8 +39,35 @@ EXTENSIÓN: .txt
 [ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
 
 ################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\export_users.py
+TAMAÑO: 772 bytes
+EXTENSIÓN: .py
+################################################################################
+from app import create_app, db
+from app.models import User
+
+app = create_app()
+
+with app.app_context():
+    users = User.query.all()
+    
+    with open("lista_de_usuarios.txt", "w", encoding="utf-8") as f:
+        f.write(f"REPORTE DE USUARIOS REGISTRADOS\n")
+        f.write(f"=================================\n")
+        for user in users:
+            estado = "CONFIRMADO" if user.confirmed else "PENDIENTE"
+            f.write(f"ID: {user.id}\n")
+            f.write(f"Usuario: {user.username}\n")
+            f.write(f"Email: {user.email}\n")
+            f.write(f"Estado: {estado}\n")
+            f.write(f"---------------------------------\n")
+            
+    print(f"Se han exportado {len(users)} usuarios al archivo 'lista_de_usuarios.txt'.")
+
+
+################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\requirements.txt
-TAMAÑO: 450 bytes
+TAMAÑO: 470 bytes
 EXTENSIÓN: .txt
 ################################################################################
 bcrypt==5.0.0
@@ -44,6 +79,7 @@ Flask==3.1.2
 Flask-Bcrypt==1.0.1
 Flask-Limiter==4.1.1
 Flask-Login==0.6.3
+Flask-Mail==0.10.0
 Flask-SQLAlchemy==3.1.1
 greenlet==3.3.0
 itsdangerous==2.2.0
@@ -61,6 +97,26 @@ typing_extensions==4.15.0
 Werkzeug==3.1.5
 wrapt==2.0.1
 
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\reset_db.py
+TAMAÑO: 364 bytes
+EXTENSIÓN: .py
+################################################################################
+from app import create_app, db
+
+app = create_app()
+
+with app.app_context():
+    # 1. Borrar todas las tablas existentes
+    db.drop_all()
+    print("--- Base de datos eliminada ---")
+    
+    # 2. Crear tablas nuevas limpias
+    db.create_all()
+    print("--- Base de datos regenerada (Usuarios eliminados) ---")
+    print("--- Listo para pruebas ---")
 
 
 ################################################################################
@@ -85,37 +141,14 @@ EXTENSIÓN: .md
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\__init__.py
-TAMAÑO: 1317 bytes
+TAMAÑO: 1582 bytes
 EXTENSIÓN: .py
 ################################################################################
 [ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\models.py
-TAMAÑO: 567 bytes
-EXTENSIÓN: .py
-################################################################################
-from app import db, login_manager
-from flask_login import UserMixin
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    password = db.Column(db.String(60), nullable=False)
-    otp_secret = db.Column(db.String(32), nullable=True)
-    backup_codes = db.Column(db.String(250), nullable=True) 
-
-    def __repr__(self):
-        return f"User('{self.username}')"
-
-
-################################################################################
-RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth.py
-TAMAÑO: 3749 bytes
+TAMAÑO: 1567 bytes
 EXTENSIÓN: .py
 ################################################################################
 [ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
@@ -145,8 +178,72 @@ def dashboard():
 
 
 ################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\__init__.py
+TAMAÑO: 311 bytes
+EXTENSIÓN: .py
+################################################################################
+from flask import Blueprint
+
+# 1. Creamos el Blueprint 'auth' aquí
+auth = Blueprint('auth', __name__)
+
+# 2. Importamos las rutas (vistas) para que se registren en el Blueprint
+# Es IMPORTANTE que esto esté al final para evitar errores de importación circular
+from . import routes_auth, routes_security
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\routes_auth.py
+TAMAÑO: 3762 bytes
+EXTENSIÓN: .py
+################################################################################
+[ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\routes_security.py
+TAMAÑO: 3938 bytes
+EXTENSIÓN: .py
+################################################################################
+[ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\utils.py
+TAMAÑO: 1320 bytes
+EXTENSIÓN: .py
+################################################################################
+[ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\__pycache__\__init__.cpython-311.pyc
+TAMAÑO: 418 bytes
+EXTENSIÓN: .pyc
+################################################################################
+[ARCHIVO BINARIO - OMITIDO PARA LECTURA CLARA]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\__pycache__\routes_auth.cpython-311.pyc
+TAMAÑO: 6796 bytes
+EXTENSIÓN: .pyc
+################################################################################
+[ARCHIVO BINARIO - OMITIDO PARA LECTURA CLARA]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\__pycache__\routes_security.cpython-311.pyc
+TAMAÑO: 7514 bytes
+EXTENSIÓN: .pyc
+################################################################################
+[ARCHIVO BINARIO - OMITIDO PARA LECTURA CLARA]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\__pycache__\utils.cpython-311.pyc
+TAMAÑO: 2252 bytes
+EXTENSIÓN: .pyc
+################################################################################
+[ARCHIVO BINARIO - OMITIDO PARA LECTURA CLARA]
+
+################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\__pycache__\auth.cpython-311.pyc
-TAMAÑO: 6729 bytes
+TAMAÑO: 13188 bytes
 EXTENSIÓN: .pyc
 ################################################################################
 [ARCHIVO BINARIO - OMITIDO PARA LECTURA CLARA]
@@ -211,17 +308,80 @@ EXTENSIÓN: .html
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\login.html
-TAMAÑO: 1106 bytes
+TAMAÑO: 1235 bytes
 EXTENSIÓN: .html
 ################################################################################
 [ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\register.html
-TAMAÑO: 1102 bytes
+TAMAÑO: 1436 bytes
 EXTENSIÓN: .html
 ################################################################################
 [ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\reset_request.html
+TAMAÑO: 911 bytes
+EXTENSIÓN: .html
+################################################################################
+<!DOCTYPE html>
+<html lang="es">
+<head><title>Recuperar Contraseña</title></head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+    <h2>Restablecer Contraseña</h2>
+    <p>Ingresa tu correo electrónico y te enviaremos un enlace seguro.</p>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+            <div style="color: blue;">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <input type="email" name="email" placeholder="Tu Correo Registrado" required style="padding: 10px; width: 250px;">
+        <br><br>
+        <button type="submit" style="cursor: pointer; padding: 10px;">Enviar Enlace</button>
+    </form>
+    
+    <p><a href="{{ url_for('auth.login') }}">Volver al Login</a></p>
+</body>
+</html>
+
+
+################################################################################
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\reset_token.html
+TAMAÑO: 962 bytes
+EXTENSIÓN: .html
+################################################################################
+<!DOCTYPE html>
+<html lang="es">
+<head><title>Nueva Contraseña</title></head>
+<body style="font-family: sans-serif; text-align: center; padding: 50px;">
+    <h2>Crear Nueva Contraseña</h2>
+    
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+            <div style="color: red;">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST">
+        <p>Ingresa tu nueva contraseña:</p>
+        <input type="password" name="password" placeholder="Nueva Contraseña" required autocomplete="new-password">
+        <p style="font-size: 12px; color: gray;">
+            Requisito: Min 8 caracteres, 1 mayúscula, 1 número, 1 símbolo.
+        </p>
+        <br>
+        <button type="submit" style="padding: 10px; background: green; color: white;">Actualizar Contraseña</button>
+    </form>
+</body>
+</html>
+
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\verify_2fa.html
@@ -254,7 +414,7 @@ EXTENSIÓN: .html
 
 ################################################################################
 RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\instance\site.db
-TAMAÑO: 12288 bytes
+TAMAÑO: 16384 bytes
 EXTENSIÓN: .db
 ################################################################################
 [ARCHIVO CON CONTENIDO NO TEXTO - PROBABLEMENTE BINARIO]
@@ -265,7 +425,12 @@ ESTRUCTURA VISUAL DE CARPETAS (TREE FILTRADO - SOLO ARCHIVOS IMPORTANTES)
 ├── [app]
 │   ├── [blueprints]
 │   │   ├── [__pycache__]
-│   │   ├── auth.py
+│   │   ├── [auth]
+│   │   │   ├── [__pycache__]
+│   │   │   ├── __init__.py
+│   │   │   ├── routes_auth.py
+│   │   │   ├── routes_security.py
+│   │   │   ├── utils.py
 │   │   ├── main.py
 │   ├── [templates]
 │   │   ├── dashboard.html
@@ -273,6 +438,8 @@ ESTRUCTURA VISUAL DE CARPETAS (TREE FILTRADO - SOLO ARCHIVOS IMPORTANTES)
 │   │   ├── home.html
 │   │   ├── login.html
 │   │   ├── register.html
+│   │   ├── reset_request.html
+│   │   ├── reset_token.html
 │   │   ├── verify_2fa.html
 │   ├── __init__.py
 │   ├── models.py
@@ -280,16 +447,18 @@ ESTRUCTURA VISUAL DE CARPETAS (TREE FILTRADO - SOLO ARCHIVOS IMPORTANTES)
 ├── .env
 ├── .gitignore
 ├── auditoria_completa_proyecto.txt
+├── export_users.py
 ├── requirements.txt
+├── reset_db.py
 ├── run.py
 ├── SECURITY_MANUAL.md
 
 ================================================================================
 RESUMEN
 ================================================================================
-Total de archivos encontrados: 3144
-Archivos procesados (contenido incluido): 17
-Archivos omitidos (binarios o en rutas ignoradas): 3127
+Total de archivos encontrados: 3164
+Archivos procesados (contenido incluido): 24
+Archivos omitidos (binarios o en rutas ignoradas): 3140
 Rutas ignoradas:
   - C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\__pycache__
   - C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\venv

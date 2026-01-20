@@ -19,6 +19,8 @@
     <form method="POST" action="{{ url_for('auth.register') }}">
         <input type="text" name="username" placeholder="Usuario" required>
         <br><br>
+        <input type="email" name="email" placeholder="Correo Electrónico" required>
+        <br><br>
         <input type="password" name="password" placeholder="Contraseña Segura" required autocomplete="new-password">
         <p style="font-size: 12px; color: gray;">
             Requisito: Min 8 caracteres, 1 mayúscula, 1 número, 1 símbolo.
