@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Acceso Biométrico</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/face_login.css') }}">
+</head>
+<body>
+    <h2>Login Facial</h2>
+    
+    <select id="camera-select"></select>
+
+    <div id="video-container">
+        <video id="video" autoplay playsinline muted></video>
+    </div>
+    <canvas id="canvas" style="display:none;"></canvas>
+
+    <button id="login-btn" disabled>👁 Validar Identidad</button>
+    <p id="status">Iniciando cámara...</p>
+    
+    <br>
+    <a href="{{ url_for('auth.login') }}" style="color: #aaa; text-decoration: none;">Usar Contraseña</a>
+
+    <script>
+        window.LOGIN_CONFIG = {
+            loginUrl: "{{ url_for('auth.face_login') }}",
+            csrfToken: "{{ csrf_token() if csrf_token else '' }}"
+        };
+    </script>
+
+    <script src="{{ url_for('static', filename='js/face_login.js') }}"></script>
+</body>
+</html>

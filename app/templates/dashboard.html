@@ -39,6 +39,10 @@
                 <a href="{{ url_for('auth.send_sms_verification') }}"><button style="background: orange;">Verificar Ahora (SMS)</button></a>
             {% endif %}
         </p>
+
+        <p>Reconocimiento Facial:
+            <a href="{{ url_for('auth.face_enroll_page') }}"><button style="background: #007bff; color: white;">Configurar FaceID</button></a>
+        </p>
     </div>
     
     <br><br>
