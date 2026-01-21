@@ -1,7 +1,7 @@
-# Manual de Arquitectura y Seguridad - Auth Practice (v2.1)
+# Manual de Arquitectura y Seguridad - Auth Practice (v3.1 - Integral)
 
 ## 1. Tecnologías de Defensa (Capas de Seguridad)
-Este proyecto implementa una estrategia de "Defensa en Profundidad" escalable hacia seguridad Poscuántica.
+Este proyecto implementa una estrategia de "Defensa en Profundidad" que combina seguridad clásica bancaria con defensa biométrica avanzada.
 
 | Capa | Tecnología | Función | Estado |
 |------|------------|---------|--------|
@@ -16,53 +16,65 @@ Este proyecto implementa una estrategia de "Defensa en Profundidad" escalable ha
 | **Políticas** | `Regex` | Validación estricta (Min 8 chars, Num, Mayús, Simb). | ✅ Activo |
 | **2FA** | `PyOTP` + `QR` | Autenticación de doble factor (TOTP estándar). | ✅ Activo |
 | **Recuperación** | `Secrets` | Códigos de respaldo de un solo uso (Backup Codes). | ✅ Activo |
+| **Biometría** | `Dlib` + `HOG` | Reconocimiento Facial mediante vectores de 128 dimensiones. | ✅ Activo |
+| **Frontend** | `JS` + `Canvas` | Validación de "Liveness" básica y gestión de hardware (Cámara). | ✅ Activo |
 
-## 2. Arquitectura Modular (Blueprints)
+## 2. Arquitectura Modular (Blueprints & Static)
 
-El sistema ha evolucionado de un monolito a una arquitectura basada en paquetes (`app/blueprints/auth/`).
+El sistema opera bajo una arquitectura híbrida: Backend Modular (Blueprints) y Frontend Desacoplado.
 
-### Rutas de Autenticación (`auth/routes_auth.py`)
-* **`GET/POST /register`:**
-  * Normalización de correo a minúsculas.
-  * Captura de teléfono (`phone`).
-  * Creación de usuario en estado `confirmed=False`.
-  * Envío automático de correo de confirmación.
-* **`GET /confirm/<token>`:**
-  * Valida la firma criptográfica y la expiración del token.
-  * Cambia el estado del usuario a `confirmed=True`.
-* **`GET/POST /login`:**
-  * **Escudo 1:** Rate Limiting.
-  * **Escudo 2:** Verificación de Hash.
-  * **Escudo 3:** Verificación de Email Confirmado (Bloquea si no confirmó).
-  * **Escudo 4:** Si tiene 2FA, redirige a flujo de verificación.
+### A. Backend (`app/blueprints/auth/`)
+1.  **Rutas de Autenticación (`routes_auth.py`):**
+    * **Registro:** Captura de datos + Teléfono + Envío de Email.
+    * **Confirmación:** Validación de token criptográfico.
+    * **Login:** 4 Escudos (Rate Limit -> Hash -> Email Check -> 2FA Check).
+2.  **Rutas de Seguridad (`routes_security.py`):**
+    * **2FA:** Generación de secretos TOTP y validación de códigos QR.
+    * **Backup Codes:** Generación y validación de códigos de emergencia autodestructibles.
+    * **SMS:** Lógica de generación de código (6 dígitos), almacenamiento en sesión y validación para marcar `is_phone_verified=True`.
+    * **Reset Password:** Flujo seguro de recuperación vía Email.
+3.  **Rutas Biométricas (`routes_biometric.py`) [NUEVO]:**
+    * **`POST /face-enroll`:**
+        * Recibe imagen Base64.
+        * **Estrategia Híbrida:** Detecta rostro en Escala de Grises (Estabilidad) -> Codifica en RGB (Precisión).
+        * Almacena el encoding (Pickle) en la BD.
+    * **`POST /face-login`:**
+        * Compara la imagen en vivo contra el encoding almacenado.
+        * Tolerancia configurada: 0.5 (Alta precisión).
 
-### Rutas de Seguridad (`auth/routes_security.py`)
-* **`GET/POST /verify-2fa-login`:** Validación de TOTP o Backup Codes.
-* **`GET/POST /reset_password`:** Solicitud de enlace de recuperación (No revela si el mail existe).
-* **`GET/POST /reset_password/<token>`:** Cambio de contraseña mediante token firmado.
-* **`GET /enable-2fa`:** Generación de secretos y QR en memoria (Buffer).
-* **`GET /send-sms-verification`:**
-  * Genera código numérico aleatorio (6 dígitos).
-  * Simula envío (Flash Message / Terminal) para modo desarrollo.
-  * Almacena código en sesión temporalmente.
-* **`GET/POST /verify-sms`:**
-  * Valida que el código ingresado coincida con el generado.
-  * Marca el teléfono como verificado (`is_phone_verified=True`).
+### B. Frontend (`app/static/`) [NUEVO]
+Se ha eliminado el código monolítico en HTML para separar responsabilidades.
+* **CSS (`static/css/`):** Estilos separados para `biometrics.css` (Registro) y `face_login.css` (Modo Oscuro).
+* **JS (`static/js/`):** Lógica separada en `biometrics.js` y `face_login.js`.
+* **Inyección de Configuración:** Patrón `window.CONFIG` para puente seguro Backend->Frontend.
 
-## 3. Modelo de Datos (`User`)
+## 3. Infraestructura Crítica y Compatibilidad
+Para garantizar el funcionamiento de la IA (Dlib) en Windows, el entorno está congelado en versiones específicas ("Gold Standard").
+
+* **Numpy:** `1.26.4` (Requerido para compatibilidad binaria con Dlib C++).
+* **OpenCV:** `4.9.0.80` (Alineado con Numpy 1.x).
+* **Dlib:** `.whl` precompilado manualmente.
+* **Gestión de Memoria:** Implementación de `np.array(..., copy=True, order='C')` en el backend.
+
+## 4. Modelo de Datos (`User`)
+Representación completa de la tabla de usuarios en SQLite:
+
 * `id`: Identificador único (PK).
 * `username`: Nombre de usuario (Unique).
 * `email`: Correo electrónico (Unique, Obligatorio).
 * `phone_number`: Número de celular (Unique, Nullable).
-* `password`: Hash de la contraseña.
+* `password`: Hash Bcrypt.
 * `confirmed`: Booleano (True/False) - Email confirmado.
-* `confirmed_on`: Fecha y hora de confirmación de email.
-* `is_phone_verified`: Booleano (True/False) - Teléfono validado por SMS.
-* `otp_secret`: Clave secreta TOTP (Nullable).
+* `confirmed_on`: Fecha y hora de confirmación.
+* `is_phone_verified`: Booleano - Teléfono validado por SMS.
+* `otp_secret`: Clave secreta TOTP (2FA).
 * `backup_codes`: String de códigos de emergencia (Nullable).
+* `face_encoding`: **[BLOB]** Huella matemática del rostro (Pickle).
 
-## 4. Flujos de Usuario
-1. **Registro:** Usuario -> Datos (+Teléfono) -> BD (Inactivo) -> Email Token.
-2. **Activación:** Usuario -> Clic Email -> Validación Token -> BD (Activo).
-3. **Login:** Usuario -> Credenciales -> Check Activo -> (Opcional 2FA) -> Dashboard.
-4. **Verificación Móvil:** Dashboard -> Solicitar SMS -> Código Simulado -> Validación -> BD (Teléfono Verificado).
+## 5. Flujos de Usuario Completos
+1.  **Registro:** Usuario -> Datos (+Teléfono) -> BD (Inactivo) -> Email Token.
+2.  **Activación:** Usuario -> Clic Email -> Validación Token -> BD (Activo).
+3.  **Login Clásico:** Credenciales -> Check Activo -> (Opcional 2FA/Backup Code) -> Dashboard.
+4.  **Verificación Móvil:** Dashboard -> Solicitar SMS -> Código Simulado -> Validación -> BD (Teléfono Verificado).
+5.  **Registro Biométrico:** Dashboard -> Encender Cámara -> Detección -> Guardado de Huella.
+6.  **Login Facial:** Página Login -> "Login Facial" -> Detección -> Comparación Vectorial -> Acceso Directo.
