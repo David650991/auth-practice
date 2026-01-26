@@ -1,0 +1,49 @@
+{% extends "layouts/base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/biometric/face_login.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="hud-container">
+    
+    <div id="security-layer">
+        <h2 class="hud-title">Protocolo de Defensa</h2>
+        <p id="instruction-text" class="form-meta" style="margin-top: 1rem;">IDENTIFICA EL NODO ACTIVO</p>
+        
+        <div id="node-grid" class="node-grid"></div>
+        <p id="captcha-error" class="error-msg" style="margin-top: 1.5rem; min-height: 24px;"></p>
+    </div>
+
+    <header class="hud-header">
+        <h1 class="hud-title">Acceso Biométrico</h1>
+        <a href="{{ url_for('auth.login') }}" class="action-link" style="font-size: 0.8rem;">[ CANCELAR ]</a>
+    </header>
+
+    <main class="hud-main">
+        <div id="video-wrapper">
+            <video id="camera-feed" autoplay playsinline muted></video>
+            <div class="scan-line" id="scan-fx"></div>
+            <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+    </main>
+
+    <footer class="hud-controls">
+        <div id="status">[ INICIALIZANDO SENSORES... ]</div>
+        <button id="btn-login" disabled>ESCANEAR ROSTRO</button>
+    </footer>
+
+</div>
+
+<script>
+    window.CONFIG = {
+        csrf_token: "{{ csrf_token() if csrf_token else '' }}"
+    };
+    
+    // Script visual para activar el láser al hacer click
+    document.getElementById('btn-login').addEventListener('click', function() {
+        document.getElementById('scan-fx').style.display = 'block';
+    });
+</script>
+<script type="module" src="{{ url_for('static', filename='js/face_login/index.js') }}"></script>
+{% endblock %}

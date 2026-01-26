@@ -1,0 +1,55 @@
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/dashboards.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="panel">
+    <h1>Panel de Control Blindado</h1>
+    <p>Bienvenido, <strong>{{ usuario }}</strong>. Monitoreo activo de cada capa defensiva.</p>
+
+    <div class="status-grid">
+        <div class="status-card">
+            <h3>Autenticador (App)</h3>
+            {% if estado_2fa == "ACTIVADO" %}
+                <span class="status-pill ok">✔ Activo</span>
+            {% else %}
+                <span class="status-pill warn">⚠ Inactivo</span>
+                <div class="panel-actions">
+                    <a href="{{ url_for('auth.enable_2fa') }}">
+                        <button class="cta-button secondary">Configurar App 2FA</button>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="status-card">
+            <h3>Teléfono (SMS)</h3>
+            {% if current_user.is_phone_verified %}
+                <span class="status-pill ok">✔ Verificado</span>
+            {% else %}
+                <span class="status-pill fail">✕ No verificado</span>
+                <div class="panel-actions">
+                    <a href="{{ url_for('auth.send_sms_verification') }}">
+                        <button class="cta-button">Verificar SMS</button>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="status-card">
+            <h3>Reconocimiento Facial</h3>
+            <span class="status-pill {{ 'ok' if current_user.face_encoding else 'warn' }}">
+                {{ '✔ Registrado' if current_user.face_encoding else '⚠ Configurar' }}
+            </span>
+            <div class="panel-actions">
+                <a href="{{ url_for('auth.face_enroll_page') }}">
+                    <button class="cta-button">Configurar FaceID</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <a class="action-link" href="{{ url_for('auth.logout') }}">Cerrar sesión</a>
+</section>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="main-container">
+    <h2 class="instruction">Verificación de Identidad</h2>
+    <p class="form-meta">Ingresa el token TOTP o un código de recuperación para destrabar la sesión.</p>
+
+    <form class="form-stack" method="POST" action="{{ url_for('auth.verify_2fa_login') }}">
+        <input type="text" name="token" placeholder="Código" required style="text-align:center; letter-spacing:6px;">
+        <button type="submit" class="cta-button">Validar acceso</button>
+    </form>
+</section>
+{% endblock %}

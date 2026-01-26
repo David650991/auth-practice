@@ -1,0 +1,193 @@
+/* app/static/css/biometrics.css */
+
+.biometric-shell {
+  width: min(960px, 92vw);
+  margin: 0 auto 3rem auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.biometric-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+}
+
+.scanner-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+#instruction-box {
+  width: 100%;
+  background: rgba(3, 32, 55, 0.8);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+.biometric-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+#capture-btn {
+  width: min(320px, 100%);
+  padding: 0.95rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+#capture-btn:disabled {
+  border-color: #2b3a4e;
+  color: #3a4a60;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+#capture-btn:not(:disabled):hover {
+  background: rgba(0, 240, 255, 0.1);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.35);
+}
+
+#status {
+  color: var(--text-muted);
+  min-height: 24px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+#camera-wrapper {
+  position: relative;
+  width: min(360px, 80vw);
+  height: clamp(320px, 55vw, 440px);
+  border-radius: 48% / 45%;
+  border: 6px solid rgba(0, 240, 255, 0.25);
+  overflow: hidden;
+  box-shadow: 0 25px 45px rgba(0, 0, 0, 0.6);
+  background: #000;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.guide-overlay {
+  position: absolute;
+  inset: 0;
+  border: 3px solid rgba(0, 240, 255, 0.25);
+  border-radius: 48% / 45%;
+  pointer-events: none;
+}
+
+#scan-line {
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: #00ff00;
+  top: 0;
+  left: 0;
+  box-shadow: 0 0 10px #00ff00;
+  animation: scan 2.3s infinite linear;
+  display: none;
+}
+
+@keyframes scan {
+  0% { top: 0; }
+  50% { top: 100%; }
+  100% { top: 0; }
+}
+
+.biometric-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 10, 18, 0.96);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.overlay-meta {
+  color: #8fd3ff;
+  letter-spacing: 2px;
+}
+
+.captcha-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 80px);
+  gap: 12px;
+  background: rgba(10, 26, 44, 0.9);
+  padding: 1.25rem;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+}
+
+.captcha-item {
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0.85rem;
+  background: rgba(0, 16, 32, 0.85);
+  border: 1px solid #1f2f46;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+
+.captcha-item:hover {
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
+  transform: translateY(-3px);
+}
+
+.blur-content {
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+@media (min-width: 720px) {
+  .biometric-stage {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .scanner-stack {
+    flex: 1;
+  }
+
+  .biometric-actions {
+    flex: 1;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 540px) {
+  .captcha-grid {
+    grid-template-columns: repeat(2, minmax(70px, 1fr));
+  }
+}

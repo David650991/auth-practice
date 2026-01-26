@@ -1,48 +1,53 @@
-from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
-from flask_login import LoginManager
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-from flask_mail import Mail # <--- NUEVO IMPORT
+from __future__ import annotations
+
 import os
+
 from dotenv import load_dotenv
+from flask import Flask
+
+from app.extensions import bcrypt, db, limiter, login_manager, mail
 
 load_dotenv()
 
-# Inicialización de extensiones
-db = SQLAlchemy()
-bcrypt = Bcrypt()
-login_manager = LoginManager()
-login_manager.login_view = 'auth.login'
-login_manager.login_message_category = 'info'
-mail = Mail() # <--- NUEVA INICIALIZACIÓN
-limiter = Limiter(key_func=get_remote_address)
 
-def create_app():
+def create_app(config_object=None):
+    """Fábrica principal de la aplicación."""
+
     app = Flask(__name__)
-    
-    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev-key-default')
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///site.db')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-    # Configuración de Flask-Mail
-    app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')
-    app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
-    app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS') == 'True'
-    app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')
-    app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')
+    if config_object is None:
+        config_path = os.getenv("FLASK_CONFIG", "config.development.DevelopmentConfig")
+        app.config.from_object(config_path)
+    else:
+        app.config.from_object(config_object)
 
+    _register_extensions(app)
+    _register_blueprints(app)
+
+    return app
+
+
+def _register_extensions(app: Flask) -> None:
     db.init_app(app)
     bcrypt.init_app(app)
     login_manager.init_app(app)
-    mail.init_app(app) # <--- CONECTAR A LA APP
+    mail.init_app(app)
     limiter.init_app(app)
 
+
+def _register_blueprints(app: Flask) -> None:
     from app.blueprints.main import main
     from app.blueprints.auth import auth
 
     app.register_blueprint(main)
     app.register_blueprint(auth)
 
-    return app
+
+__all__ = [
+    "create_app",
+    "db",
+    "bcrypt",
+    "login_manager",
+    "mail",
+    "limiter",
+]

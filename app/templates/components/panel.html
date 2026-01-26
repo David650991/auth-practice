@@ -1,0 +1,8 @@
+{%- macro shell(title) -%}
+<section class="panel">
+    <h1>{{ title }}</h1>
+    <div class="panel-body">
+        {{ caller() }}
+    </div>
+</section>
+{%- endmacro %}

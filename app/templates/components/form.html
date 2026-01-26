@@ -1,0 +1,5 @@
+{%- macro stack(action='', method='POST') -%}
+<form class="form-stack" action="{{ action }}" method="{{ method }}">
+    {{ caller() }}
+</form>
+{%- endmacro %}

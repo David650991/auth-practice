@@ -1,0 +1,26 @@
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="main-container">
+    <h2 class="instruction">Acceso Seguro</h2>
+    <p class="form-meta">Autenticación clásica blindada. Ingresa credenciales o activa canal biométrico.</p>
+
+    <form class="form-stack" method="POST" action="{{ url_for('auth.login') }}">
+        <input type="text" name="username" placeholder="Usuario" required autofocus>
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <button type="submit" class="cta-button">Entrar</button>
+        <div class="form-actions">
+            <a class="cta-button secondary" href="{{ url_for('auth.face_login_page') }}">Modo biométrico</a>
+        </div>
+    </form>
+
+    <div class="form-actions">
+        <a class="action-link" href="{{ url_for('auth.reset_request') }}">¿Olvidaste tu contraseña?</a>
+        <span class="form-meta">¿Sin cuenta? <a href="{{ url_for('auth.register') }}">Regístrate aquí</a></span>
+        <a class="action-link" href="{{ url_for('main.home') }}">Volver al Inicio</a>
+    </div>
+</section>
+{% endblock %}

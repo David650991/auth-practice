@@ -1,0 +1,25 @@
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="main-container">
+    <h2 class="instruction">Registro Blindado</h2>
+    <p class="form-meta">Completa la información para generar credenciales cifradas y enrolar tu línea segura.</p>
+
+    <form class="form-stack" method="POST" action="{{ url_for('auth.register') }}">
+        <input type="text" name="username" placeholder="Usuario" required>
+        <input type="email" name="email" placeholder="Correo Electrónico" required>
+        <input type="tel" name="phone" placeholder="Celular (ej: +52...)" required>
+        <input type="password" name="password" placeholder="Contraseña Segura" required autocomplete="new-password">
+        <small class="form-meta">Requisito: mínimo 8 caracteres, 1 mayúscula, 1 número y 1 símbolo.</small>
+        <button type="submit" class="cta-button">Registrar</button>
+    </form>
+
+    <div class="form-actions">
+        <span class="form-meta">¿Ya tienes cuenta? <a href="{{ url_for('auth.login') }}">Inicia sesión</a></span>
+        <a class="action-link" href="{{ url_for('main.home') }}">Volver al Inicio</a>
+    </div>
+</section>
+{% endblock %}

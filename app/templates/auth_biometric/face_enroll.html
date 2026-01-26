@@ -1,0 +1,53 @@
+{% extends "layouts/base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/biometric/face_enroll.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="captcha-overlay" class="security-overlay">
+    <h2 class="security-title">Protocolo de Asignación</h2>
+    <p class="security-subtitle">Selecciona el escudo activo</p>
+    <div id="captcha-grid" class="captcha-matrix"></div>
+</div>
+
+<div id="main-content" class="enroll-container blur-content">
+    <header class="enroll-header">
+        <div>
+            <h1 class="enroll-title">Registro Biométrico</h1>
+            <p class="enroll-subtitle">Captura de vector facial</p>
+        </div>
+        <a href="{{ url_for('main.dashboard') }}" class="cancel-link">[ CANCELAR ]</a>
+    </header>
+
+    <main class="enroll-main">
+        <div id="video-wrapper" class="scanner-wrapper">
+            <video id="video" autoplay playsinline muted></video>
+            <div class="guide-overlay scanner-guide"></div>
+            <div id="scan-line" class="scanner-line"></div>
+            <canvas id="canvas" class="hidden-canvas"></canvas>
+        </div>
+        <div id="instruction-box" class="instruction-panel">
+            <span id="instruction-icon" class="instruction-icon">◉</span>
+            <span id="instruction-text" class="instruction-label">Inicializando cámara...</span>
+        </div>
+    </main>
+
+    <footer class="enroll-footer">
+        <div id="status" class="status-indicator">[ Sistema listo ]</div>
+        <button id="capture-btn" class="enroll-btn" disabled>Iniciar Prueba de Vida</button>
+    </footer>
+</div>
+
+<script>
+    window.BIOMETRIC_CONFIG = {
+        enrollUrl: "{{ url_for('auth.face_enroll') }}",
+        csrfToken: "{{ csrf_token() if csrf_token else '' }}"
+    };
+
+    document.getElementById('capture-btn').addEventListener('click', function() {
+        document.getElementById('scan-line').style.display = 'block';
+    });
+</script>
+<script type="module" src="{{ url_for('static', filename='js/face_enroll/index.js') }}"></script>
+{% endblock %}

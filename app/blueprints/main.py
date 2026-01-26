@@ -14,4 +14,4 @@ def home():
 def dashboard():
     # Lógica para mostrar estado de 2FA basada en tus templates
     estado_2fa = "ACTIVADO" if current_user.otp_secret else "DESACTIVADO"
-    return render_template('dashboard.html', usuario=current_user.username, estado_2fa=estado_2fa)
+    return render_template('main/dashboard.html', usuario=current_user.username, estado_2fa=estado_2fa)

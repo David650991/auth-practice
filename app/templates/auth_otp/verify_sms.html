@@ -1,0 +1,21 @@
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="main-container">
+    <h2 class="instruction">Verificación SMS</h2>
+    <p class="form-meta">Enviamos un código al número <strong>{{ current_user.phone_number }}</strong>. Ingresa los 6 dígitos para sellar la línea.</p>
+    <p class="form-meta">Modo dev: el código también aparece como mensaje flash o en terminal.</p>
+
+    <form class="form-stack" method="POST">
+        <input type="text" name="sms_code" placeholder="Código de 6 dígitos" required style="text-align:center; letter-spacing:6px;">
+        <button type="submit" class="cta-button">Verificar</button>
+    </form>
+
+    <div class="form-actions">
+        <a class="action-link" href="{{ url_for('main.dashboard') }}">Volver al panel</a>
+    </div>
+</section>
+{% endblock %}

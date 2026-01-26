@@ -1,0 +1,16 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="hero-shell">
+    <h1>Sistema de Acceso Central v3.4</h1>
+    <p>Protocolo Táctico Zero Trust. Elija el canal de autenticación autorizado y mantenga la sesión bajo supervisión biométrica.</p>
+    <div class="cta-group">
+        <a href="{{ url_for('auth.register') }}">
+            <button class="cta-button secondary">Nuevo Registro</button>
+        </a>
+        <a href="{{ url_for('auth.login') }}">
+            <button class="cta-button">Iniciar Sesión</button>
+        </a>
+    </div>
+</div>
+{% endblock %}

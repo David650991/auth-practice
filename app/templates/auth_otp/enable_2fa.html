@@ -1,0 +1,36 @@
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/dashboards.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="panel">
+    <h1>Activar Doble Factor</h1>
+    <p>Escanea el QR con tu app y almacena los códigos de rescate en un almacén físico seguro.</p>
+
+    <div style="display:flex; flex-wrap:wrap; gap:2rem; justify-content:center; align-items:flex-start; margin-top:2rem;">
+        <div style="text-align:center;">
+            <p class="form-meta">1. Escanea el código</p>
+            <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" style="border:3px solid var(--accent); border-radius:12px; box-shadow:0 0 20px rgba(0,240,255,0.25); max-width:220px;">
+            <p class="form-meta">Clave manual: {{ secret }}</p>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-soft); border-radius:12px; padding:1.5rem; min-width:260px;">
+            <h3 style="margin-top:0; color:var(--warning);">Códigos de recuperación</h3>
+            <p class="form-meta">Cada código es de un solo uso. Escríbelos en un medio offline.</p>
+            <ul style="font-family:'Share Tech Mono','Consolas'; font-size:1.1rem; list-style:none; padding:0; margin:1rem 0 0 0;">
+                {% for code in backup_codes %}
+                    <li style="margin:0.35rem 0; letter-spacing:2px;">{{ code }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="panel-actions">
+        <a href="/dashboard">
+            <button class="cta-button">He guardado los códigos</button>
+        </a>
+    </div>
+</section>
+{% endblock %}

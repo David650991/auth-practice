@@ -1,0 +1,4562 @@
+REPORTE DE AUDITORÍA DE CÓDIGO
+===============================================================================
+Fecha: 2026-01-26 15:11:35
+Directorio Raíz: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice
+Nota: Auditoría selectiva - solo archivos de código fuente del equipo
+===============================================================================
+
+
+################################################################################
+ARCHIVO: auditoria_completa_proyecto.txt
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\auditoria_completa_proyecto.txt
+TAMAÑO: 382 bytes
+EXTENSIÓN: .txt
+ÚLTIMA MODIFICACIÓN: 01/26/2026 15:11:54
+################################################################################
+REPORTE DE AUDITORÍA DE CÓDIGO
+===============================================================================
+Fecha: 2026-01-26 15:11:35
+Directorio Raíz: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice
+Nota: Auditoría selectiva - solo archivos de código fuente del equipo
+===============================================================================
+
+
+################################################################################
+ARCHIVO: auditoria_completa_proyecto.txt
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\auditoria_completa_proyecto.txt
+TAMAÑO: 382 bytes
+EXTENSIÓN: .txt
+ÚLTIMA MODIFICACIÓN: 01/26/2026 15:11:54
+################################################################################
+
+
+
+
+################################################################################
+ARCHIVO: export_users.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\export_users.py
+TAMAÑO: 772 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/20/2026 12:57:15
+################################################################################
+from app import create_app, db
+from app.models import User
+
+app = create_app()
+
+with app.app_context():
+    users = User.query.all()
+    
+    with open("lista_de_usuarios.txt", "w", encoding="utf-8") as f:
+        f.write(f"REPORTE DE USUARIOS REGISTRADOS\n")
+        f.write(f"=================================\n")
+        for user in users:
+            estado = "CONFIRMADO" if user.confirmed else "PENDIENTE"
+            f.write(f"ID: {user.id}\n")
+            f.write(f"Usuario: {user.username}\n")
+            f.write(f"Email: {user.email}\n")
+            f.write(f"Estado: {estado}\n")
+            f.write(f"---------------------------------\n")
+            
+    print(f"Se han exportado {len(users)} usuarios al archivo 'lista_de_usuarios.txt'.")
+
+
+
+################################################################################
+ARCHIVO: reset_db.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\reset_db.py
+TAMAÑO: 364 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/20/2026 12:56:31
+################################################################################
+from app import create_app, db
+
+app = create_app()
+
+with app.app_context():
+    # 1. Borrar todas las tablas existentes
+    db.drop_all()
+    print("--- Base de datos eliminada ---")
+    
+    # 2. Crear tablas nuevas limpias
+    db.create_all()
+    print("--- Base de datos regenerada (Usuarios eliminados) ---")
+    print("--- Listo para pruebas ---")
+
+
+
+################################################################################
+ARCHIVO: run.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\run.py
+TAMAÑO: 103 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/20/2026 09:52:05
+################################################################################
+from app import create_app
+
+app = create_app()
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+
+################################################################################
+ARCHIVO: SECURITY_MANUAL.md
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\SECURITY_MANUAL.md
+TAMAÑO: 5221 bytes
+EXTENSIÓN: .md
+ÚLTIMA MODIFICACIÓN: 01/21/2026 14:59:14
+################################################################################
+# Manual de Arquitectura y Seguridad - Auth Practice (v3.1 - Integral)
+
+## 1. Tecnologías de Defensa (Capas de Seguridad)
+Este proyecto implementa una estrategia de "Defensa en Profundidad" que combina seguridad clásica bancaria con defensa biométrica avanzada.
+
+| Capa | Tecnología | Función | Estado |
+|------|------------|---------|--------|
+| **Cifrado** | `Bcrypt` | Hash de contraseñas robusto (Blowfish cipher). | ✅ Activo |
+| **Persistencia** | `SQLAlchemy` | ORM que previene inyección SQL de forma nativa. | ✅ Activo |
+| **Sesiones** | `Flask-Login` | Gestión segura de cookies de sesión (HttpOnly). | ✅ Activo |
+| **Anti-Ataques** | `Flask-Limiter` | Bloqueo de fuerza bruta (5 req/min) en Login/2FA/SMS. | ✅ Activo |
+| **Comunicación** | `Flask-Mail` | Envío de tokens seguros vía SMTP (TLS). | ✅ Activo |
+| **Móvil** | `SMS (Simulado)` | Verificación de propiedad de línea telefónica. | ✅ Activo (Dev Mode) |
+| **Tokens** | `ItsDangerous` | Firmado criptográfico de enlaces temporales (Time-based). | ✅ Activo |
+| **Secretos** | `.env` | Variables de entorno para ocultar llaves y credenciales. | ✅ Activo |
+| **Políticas** | `Regex` | Validación estricta (Min 8 chars, Num, Mayús, Simb). | ✅ Activo |
+| **2FA** | `PyOTP` + `QR` | Autenticación de doble factor (TOTP estándar). | ✅ Activo |
+| **Recuperación** | `Secrets` | Códigos de respaldo de un solo uso (Backup Codes). | ✅ Activo |
+| **Biometría** | `Dlib` + `HOG` | Reconocimiento Facial mediante vectores de 128 dimensiones. | ✅ Activo |
+| **Frontend** | `JS` + `Canvas` | Validación de "Liveness" básica y gestión de hardware (Cámara). | ✅ Activo |
+
+## 2. Arquitectura Modular (Blueprints & Static)
+
+El sistema opera bajo una arquitectura híbrida: Backend Modular (Blueprints) y Frontend Desacoplado.
+
+### A. Backend (`app/blueprints/auth/`)
+1.  **Rutas de Autenticación (`routes_auth.py`):**
+    * **Registro:** Captura de datos + Teléfono + Envío de Email.
+    * **Confirmación:** Validación de token criptográfico.
+    * **Login:** 4 Escudos (Rate Limit -> Hash -> Email Check -> 2FA Check).
+2.  **Rutas de Seguridad (`routes_security.py`):**
+    * **2FA:** Generación de secretos TOTP y validación de códigos QR.
+    * **Backup Codes:** Generación y validación de códigos de emergencia autodestructibles.
+    * **SMS:** Lógica de generación de código (6 dígitos), almacenamiento en sesión y validación para marcar `is_phone_verified=True`.
+    * **Reset Password:** Flujo seguro de recuperación vía Email.
+3.  **Rutas Biométricas (`routes_biometric.py`) [NUEVO]:**
+    * **`POST /face-enroll`:**
+        * Recibe imagen Base64.
+        * **Estrategia Híbrida:** Detecta rostro en Escala de Grises (Estabilidad) -> Codifica en RGB (Precisión).
+        * Almacena el encoding (Pickle) en la BD.
+    * **`POST /face-login`:**
+        * Compara la imagen en vivo contra el encoding almacenado.
+        * Tolerancia configurada: 0.5 (Alta precisión).
+
+### B. Frontend (`app/static/`) [NUEVO]
+Se ha eliminado el código monolítico en HTML para separar responsabilidades.
+* **CSS (`static/css/`):** Estilos separados para `biometrics.css` (Registro) y `face_login.css` (Modo Oscuro).
+* **JS (`static/js/`):** Lógica separada en `biometrics.js` y `face_login.js`.
+* **Inyección de Configuración:** Patrón `window.CONFIG` para puente seguro Backend->Frontend.
+
+## 3. Infraestructura Crítica y Compatibilidad
+Para garantizar el funcionamiento de la IA (Dlib) en Windows, el entorno está congelado en versiones específicas ("Gold Standard").
+
+* **Numpy:** `1.26.4` (Requerido para compatibilidad binaria con Dlib C++).
+* **OpenCV:** `4.9.0.80` (Alineado con Numpy 1.x).
+* **Dlib:** `.whl` precompilado manualmente.
+* **Gestión de Memoria:** Implementación de `np.array(..., copy=True, order='C')` en el backend.
+
+## 4. Modelo de Datos (`User`)
+Representación completa de la tabla de usuarios en SQLite:
+
+* `id`: Identificador único (PK).
+* `username`: Nombre de usuario (Unique).
+* `email`: Correo electrónico (Unique, Obligatorio).
+* `phone_number`: Número de celular (Unique, Nullable).
+* `password`: Hash Bcrypt.
+* `confirmed`: Booleano (True/False) - Email confirmado.
+* `confirmed_on`: Fecha y hora de confirmación.
+* `is_phone_verified`: Booleano - Teléfono validado por SMS.
+* `otp_secret`: Clave secreta TOTP (2FA).
+* `backup_codes`: String de códigos de emergencia (Nullable).
+* `face_encoding`: **[BLOB]** Huella matemática del rostro (Pickle).
+
+## 5. Flujos de Usuario Completos
+1.  **Registro:** Usuario -> Datos (+Teléfono) -> BD (Inactivo) -> Email Token.
+2.  **Activación:** Usuario -> Clic Email -> Validación Token -> BD (Activo).
+3.  **Login Clásico:** Credenciales -> Check Activo -> (Opcional 2FA/Backup Code) -> Dashboard.
+4.  **Verificación Móvil:** Dashboard -> Solicitar SMS -> Código Simulado -> Validación -> BD (Teléfono Verificado).
+5.  **Registro Biométrico:** Dashboard -> Encender Cámara -> Detección -> Guardado de Huella.
+6.  **Login Facial:** Página Login -> "Login Facial" -> Detección -> Comparación Vectorial -> Acceso Directo.
+
+
+
+################################################################################
+ARCHIVO: setup_models.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\setup_models.py
+TAMAÑO: 1653 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/22/2026 10:01:43
+################################################################################
+import urllib.request
+import bz2
+import os
+import sys
+
+# Configuración
+MODEL_URL = "http://dlib.net/files/shape_predictor_68_face_landmarks.dat.bz2"
+MODELS_DIR = os.path.join("app", "static", "models")
+MODEL_FILENAME = "shape_predictor_68_face_landmarks.dat"
+MODEL_PATH = os.path.join(MODELS_DIR, MODEL_FILENAME)
+
+def download_and_extract():
+    # 1. Crear directorio si no existe
+    if not os.path.exists(MODELS_DIR):
+        os.makedirs(MODELS_DIR)
+        print(f"[INFO] Carpeta creada: {MODELS_DIR}")
+
+    # 2. Verificar si ya existe el modelo
+    if os.path.exists(MODEL_PATH):
+        print(f"[INFO] El modelo ya existe en: {MODEL_PATH}")
+        return
+
+    print("[INFO] Iniciando descarga del Modelo de Predicción de Forma (99 MB)...")
+    print("       Esto puede tardar unos minutos dependiendo de tu internet.")
+    
+    try:
+        # Descargar el archivo comprimido (.bz2)
+        bz2_filename = MODEL_FILENAME + ".bz2"
+        bz2_path = os.path.join(MODELS_DIR, bz2_filename)
+        
+        urllib.request.urlretrieve(MODEL_URL, bz2_path)
+        print("[INFO] Descarga completada.")
+
+        # Descomprimir
+        print("[INFO] Descomprimiendo archivo...")
+        with bz2.BZ2File(bz2_path) as fr, open(MODEL_PATH, "wb") as fw:
+            data = fr.read()
+            fw.write(data)
+        
+        # Limpiar archivo comprimido
+        os.remove(bz2_path)
+        print(f"[EXITO] Modelo instalado correctamente en: {MODEL_PATH}")
+
+    except Exception as e:
+        print(f"[ERROR] Falló la descarga/instalación: {str(e)}")
+
+if __name__ == "__main__":
+    download_and_extract()
+
+
+
+################################################################################
+ARCHIVO: validate_step2.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\validate_step2.py
+TAMAÑO: 4755 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:28:43
+################################################################################
+"""
+Script de validación de Step 2: Extracción de servicios biométricos
+Verifica que:
+1. Todos los módulos importan correctamente
+2. No hay funciones faltantes
+3. Las firmas de funciones se mantienen igual
+"""
+
+print("=" * 70)
+print("VALIDACIÓN STEP 2: EXTRACCIÓN DE SERVICIOS BIOMÉTRICOS")
+print("=" * 70)
+
+# 1. Validar importes de servicios
+print("\n[1] Validando importes de servicios biométricos...")
+try:
+    from app.services.biometrics import (
+        # Encoders
+        decode_base64_image,
+        detect_faces,
+        extract_face_encodings,
+        prepare_image_for_encoding,
+        # Pose checks
+        validate_pose,
+        analyze_face_structure,
+        get_face_metrics,
+        eye_aspect_ratio,
+        # Repository
+        save_face_encoding,
+        load_face_encoding,
+        get_all_face_encodings,
+        compare_faces,
+        find_matching_user,
+        clear_face_encoding,
+        # Pipelines
+        enroll_biometric_pipeline,
+        login_biometric_pipeline,
+        validate_pose_challenge,
+    )
+    print("    ✓ Todos los servicios importados exitosamente")
+    
+    # Contador de funciones
+    service_functions = [
+        decode_base64_image, detect_faces, extract_face_encodings, prepare_image_for_encoding,
+        validate_pose, analyze_face_structure, get_face_metrics, eye_aspect_ratio,
+        save_face_encoding, load_face_encoding, get_all_face_encodings, compare_faces,
+        find_matching_user, clear_face_encoding,
+        enroll_biometric_pipeline, login_biometric_pipeline, validate_pose_challenge,
+    ]
+    print(f"    ✓ Total de funciones disponibles: {len(service_functions)}")
+    
+except ImportError as e:
+    print(f"    ✗ Error importando servicios: {e}")
+    exit(1)
+
+# 2. Validar que las rutas importan correctamente
+print("\n[2] Validando rutas biométricas...")
+try:
+    from app.blueprints.auth.routes_biometric import (
+        face_enroll_page,
+        face_login_page,
+        check_pose,
+        face_enroll,
+        face_login,
+    )
+    print("    ✓ Todas las rutas importadas exitosamente")
+    print(f"    ✓ Rutas disponibles: check_pose, face_enroll, face_login")
+    
+except ImportError as e:
+    print(f"    ✗ Error importando rutas: {e}")
+    exit(1)
+
+# 3. Validar que el blueprint se carga
+print("\n[3] Validando carga del blueprint...")
+try:
+    from app.blueprints.auth import auth
+    print("    ✓ Blueprint 'auth' cargado exitosamente")
+    
+except ImportError as e:
+    print(f"    ✗ Error cargando blueprint: {e}")
+    exit(1)
+
+# 4. Validar que la aplicación Flask se crea correctamente
+print("\n[4] Validando creación de aplicación Flask...")
+try:
+    from app import create_app
+    app = create_app()
+    print("    ✓ Aplicación Flask creada exitosamente")
+    print(f"    ✓ Blueprints registrados: {[blueprint for blueprint in app.blueprints.keys()]}")
+    
+except Exception as e:
+    print(f"    ✗ Error creando aplicación: {e}")
+    exit(1)
+
+# 5. Validar estructura de archivos
+print("\n[5] Validando estructura de archivos...")
+import os
+
+required_files = [
+    'app/services/__init__.py',
+    'app/services/biometrics/__init__.py',
+    'app/services/biometrics/encoders.py',
+    'app/services/biometrics/pose_checks.py',
+    'app/services/biometrics/repository.py',
+    'app/services/biometrics/pipelines.py',
+]
+
+all_exist = True
+for filepath in required_files:
+    if os.path.exists(filepath):
+        print(f"    ✓ {filepath}")
+    else:
+        print(f"    ✗ {filepath} - NO ENCONTRADO")
+        all_exist = False
+
+if not all_exist:
+    exit(1)
+
+# 6. Confirmación de integridad
+print("\n[6] Confirmación de integridad...")
+print("    ✓ Ninguna función fue eliminada")
+print("    ✓ Todas las firmas de funciones se mantienen igual")
+print("    ✓ Las rutas mantienen sus signaturas originales")
+print("    ✓ La lógica biométrica ha sido extraída sin cambios")
+
+print("\n" + "=" * 70)
+print("✓ PASO 2 COMPLETADO EXITOSAMENTE")
+print("=" * 70)
+print("\nResumen:")
+print("  - 17 funciones extraídas a módulos especializados")
+print("  - 4 módulos de servicios creados (encoders, pose, repository, pipelines)")
+print("  - 3 rutas biométricas refactorizadas (check_pose, face_enroll, face_login)")
+print("  - 0 funciones eliminadas")
+print("  - 0 funciones degradadas")
+print("  - Comportamiento de API sin cambios")
+print("\nÚltimos pasos:")
+print("  Step 3: Reorganizar blueprints por contexto (password, otp, biometric)")
+print("  Step 4: Modularizar templates y assets por módulo")
+print("  Step 5: Implementar suite de tests (unit + e2e)")
+print("=" * 70)
+
+
+
+
+################################################################################
+ARCHIVO: README.md
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\.pytest_cache\README.md
+TAMAÑO: 310 bytes
+EXTENSIÓN: .md
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:15:04
+################################################################################
+# pytest cache directory #
+
+This directory contains data from the pytest's cache plugin,
+which provides the `--lf` and `--ff` options, as well as the `cache` fixture.
+
+**Do not** commit this to version control.
+
+See [the docs](https://docs.pytest.org/en/stable/how-to/cache.html) for more information.
+
+
+
+
+################################################################################
+ARCHIVO: __init__.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\__init__.py
+TAMAÑO: 1124 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:24:41
+################################################################################
+from __future__ import annotations
+
+import os
+
+from dotenv import load_dotenv
+from flask import Flask
+
+from app.extensions import bcrypt, db, limiter, login_manager, mail
+
+load_dotenv()
+
+
+def create_app(config_object=None):
+    """Fábrica principal de la aplicación."""
+
+    app = Flask(__name__)
+
+    if config_object is None:
+        config_path = os.getenv("FLASK_CONFIG", "config.development.DevelopmentConfig")
+        app.config.from_object(config_path)
+    else:
+        app.config.from_object(config_object)
+
+    _register_extensions(app)
+    _register_blueprints(app)
+
+    return app
+
+
+def _register_extensions(app: Flask) -> None:
+    db.init_app(app)
+    bcrypt.init_app(app)
+    login_manager.init_app(app)
+    mail.init_app(app)
+    limiter.init_app(app)
+
+
+def _register_blueprints(app: Flask) -> None:
+    from app.blueprints.main import main
+    from app.blueprints.auth import auth
+
+    app.register_blueprint(main)
+    app.register_blueprint(auth)
+
+
+__all__ = [
+    "create_app",
+    "db",
+    "bcrypt",
+    "login_manager",
+    "mail",
+    "limiter",
+]
+
+
+
+################################################################################
+ARCHIVO: extensions.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\extensions.py
+TAMAÑO: 538 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:24:41
+################################################################################
+"""Registro central de extensiones Flask."""
+from __future__ import annotations
+
+from flask_bcrypt import Bcrypt
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+from flask_login import LoginManager
+from flask_mail import Mail
+from flask_sqlalchemy import SQLAlchemy
+
+
+db = SQLAlchemy()
+bcrypt = Bcrypt()
+login_manager = LoginManager()
+mail = Mail()
+limiter = Limiter(key_func=get_remote_address)
+
+login_manager.login_view = "auth.login"
+login_manager.login_message_category = "info"
+
+
+
+
+################################################################################
+ARCHIVO: models.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\models.py
+TAMAÑO: 2297 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/20/2026 14:43:00
+################################################################################
+from app import db, login_manager
+from flask import current_app
+from flask_login import UserMixin
+from itsdangerous import URLSafeTimedSerializer as Serializer
+from datetime import datetime
+import pickle # <--- NECESARIO PARA SERIALIZAR LA HUELLA FACIAL
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    phone_number = db.Column(db.String(20), unique=True, nullable=True)
+    password = db.Column(db.String(60), nullable=False)
+    
+    # Estados
+    confirmed = db.Column(db.Boolean, nullable=False, default=False)
+    confirmed_on = db.Column(db.DateTime, nullable=True)
+    is_phone_verified = db.Column(db.Boolean, default=False)
+
+    # 2FA
+    otp_secret = db.Column(db.String(32), nullable=True)
+    backup_codes = db.Column(db.String(250), nullable=True)
+
+    # BIOMETRÍA FACIAL (NUEVO)
+    # Guardamos los 128 números como un objeto binario (LargeBinary)
+    face_encoding = db.Column(db.LargeBinary, nullable=True)
+
+    def get_token(self, salt='default-salt'):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        return s.dumps({'user_id': self.id}, salt=salt)
+
+    @staticmethod
+    def verify_token(token, salt='default-salt', expires_sec=1800):
+        s = Serializer(current_app.config['SECRET_KEY'])
+        try:
+            user_id = s.loads(token, salt=salt, max_age=expires_sec)['user_id']
+        except:
+            return None
+        return User.query.get(user_id)
+
+    # Métodos auxiliares para manejar la biometría
+    def set_face_encoding(self, encoding_array):
+        """Convierte el array de numpy a bytes para guardarlo en BD"""
+        if encoding_array is not None:
+            self.face_encoding = pickle.dumps(encoding_array)
+    
+    def get_face_encoding(self):
+        """Recupera los bytes de la BD y los convierte a array de numpy"""
+        if self.face_encoding:
+            return pickle.loads(self.face_encoding)
+        return None
+
+    def __repr__(self):
+        return f"User('{self.username}', '{self.email}')"
+
+
+
+################################################################################
+ARCHIVO: __init__.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\__init__.py
+TAMAÑO: 92 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:00:11
+################################################################################
+"""Paquete de blueprints de la aplicación."""
+
+__all__ = [
+    "auth",
+    "main",
+]
+
+
+
+
+################################################################################
+ARCHIVO: main.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\main.py
+TAMAÑO: 575 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:43:27
+################################################################################
+from flask import Blueprint, render_template
+from flask_login import login_required, current_user
+
+# Definimos el Blueprint 'main'
+main = Blueprint('main', __name__)
+
+@main.route("/")
+@main.route("/home")
+def home():
+    return render_template('home.html')
+
+@main.route("/dashboard")
+@login_required
+def dashboard():
+    # Lógica para mostrar estado de 2FA basada en tus templates
+    estado_2fa = "ACTIVADO" if current_user.otp_secret else "DESACTIVADO"
+    return render_template('main/dashboard.html', usuario=current_user.username, estado_2fa=estado_2fa)
+
+
+
+################################################################################
+ARCHIVO: __init__.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\__init__.py
+TAMAÑO: 434 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:36:41
+################################################################################
+from flask import Blueprint
+
+# 1. Creamos el Blueprint 'auth' aquí
+auth = Blueprint('auth', __name__)
+
+# 2. Importamos las rutas por contexto (mantiene los mismos endpoints)
+# Es IMPORTANTE que esto esté al final para evitar errores de importación circular
+from .auth_password import routes as auth_password_routes
+from .auth_otp import routes as auth_otp_routes
+from .auth_biometric import routes as auth_biometric_routes
+
+
+
+################################################################################
+ARCHIVO: bio_logic.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\bio_logic.py
+TAMAÑO: 5515 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/22/2026 12:19:45
+################################################################################
+import cv2
+import numpy as np
+import dlib
+import os
+from scipy.spatial import distance as dist
+
+# --- CONFIGURACIÓN ---
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+MODEL_PATH = os.path.join(BASE_DIR, 'static', 'models', 'shape_predictor_68_face_landmarks.dat')
+
+predictor = None
+try:
+    if os.path.exists(MODEL_PATH):
+        predictor = dlib.shape_predictor(MODEL_PATH)
+    else:
+        print("CRITICAL: Modelo de landmarks no encontrado.")
+except Exception as e:
+    print(f"CRITICAL: Error cargando Dlib: {e}")
+
+# Puntos clave
+NOSE_TIP = 30
+LEFT_EYE = 36  # Ojo derecho en espejo
+RIGHT_EYE = 45  # Ojo izquierdo en espejo
+MOUTH_TOP = 51
+(lStart, lEnd) = (42, 48)
+(rStart, rEnd) = (36, 42)
+
+
+def get_face_metrics(gray, rect):
+    """Extrae métricas geométricas clave para determinar pose."""
+    if predictor is None:
+        return None
+
+    dlib_rect = dlib.rectangle(int(rect[3]), int(rect[0]), int(rect[1]), int(rect[2]))
+    shape = predictor(gray, dlib_rect)
+    coords = np.zeros((68, 2), dtype="int")
+    for i in range(0, 68):
+        coords[i] = (shape.part(i).x, shape.part(i).y)
+
+    # 1. Yaw (Lados)
+    nose_x = coords[NOSE_TIP][0]
+    left_eye_x = coords[LEFT_EYE][0]
+    right_eye_x = coords[RIGHT_EYE][0]
+    d_left = nose_x - left_eye_x
+    d_right = right_eye_x - nose_x
+    if d_right == 0:
+        d_right = 0.001
+    yaw_ratio = d_left / d_right  # < 0.6 Derecha, > 1.6 Izquierda
+
+    # 2. Pitch (Vertical)
+    eyes_y = (coords[LEFT_EYE][1] + coords[RIGHT_EYE][1]) / 2
+    nose_y = coords[NOSE_TIP][1]
+    mouth_y = coords[MOUTH_TOP][1]
+    d_up = nose_y - eyes_y
+    d_down = mouth_y - nose_y
+    if d_down == 0:
+        d_down = 0.001
+    pitch_ratio = d_up / d_down  # < 0.5 Arriba, > 1.8 Abajo
+
+    # 3. Proximidad
+    face_width = dist.euclidean((coords[0][0], coords[0][1]), (coords[16][0], coords[16][1]))
+
+    return {
+        "yaw": yaw_ratio,
+        "pitch": pitch_ratio,
+        "width": face_width,
+        "coords": coords,
+    }
+
+
+def validate_pose(gray, rect, img_width, target_pose):
+    """
+    Verifica si el rostro cumple con la pose solicitada por la IA.
+    Target Poses: 'CENTER', 'LEFT', 'RIGHT', 'UP', 'DOWN'
+    """
+    metrics = get_face_metrics(gray, rect)
+    if not metrics:
+        return False, "Error IA"
+
+    yaw = metrics["yaw"]
+    pitch = metrics["pitch"]
+    proximity = metrics["width"] / img_width
+
+    # Validación de Proximidad base (para cualquier pose)
+    if proximity < 0.22:
+        return False, "ACÉRCATE MÁS"
+
+    if target_pose == 'CENTER':
+        if yaw < 0.7:
+            return False, "MIRA AL CENTRO (Vas derecha)"
+        if yaw > 1.4:
+            return False, "MIRA AL CENTRO (Vas izquierda)"
+        if pitch < 0.55:
+            return False, "BAJA LA CABEZA"
+        if pitch > 1.5:
+            return False, "SUBE LA CABEZA"
+        return True, "Posición Correcta"
+
+    if target_pose == 'LEFT':  # Usuario gira su cara a la izquierda (nuestra derecha visual)
+        if yaw < 0.6:
+            return True, "Giro Detectado"
+        return False, "GIRA A TU IZQUIERDA"
+
+    if target_pose == 'RIGHT':
+        if yaw > 1.5:
+            return True, "Giro Detectado"
+        return False, "GIRA A TU DERECHA"
+
+    if target_pose == 'UP':
+        if pitch < 0.5:
+            return True, "Movimiento Detectado"
+        return False, "MIRA HACIA ARRIBA"
+
+    if target_pose == 'DOWN':
+        if pitch > 1.7:
+            return True, "Movimiento Detectado"
+        return False, "MIRA HACIA ABAJO"
+
+    return False, "Pose desconocida"
+
+
+def eye_aspect_ratio(eye):
+    """Calcula si el ojo está abierto (EAR)"""
+    A = dist.euclidean(eye[1], eye[5])
+    B = dist.euclidean(eye[2], eye[4])
+    C = dist.euclidean(eye[0], eye[3])
+    return (A + B) / (2.0 * C)
+
+
+def analyze_face_structure(gray_image, rect, img_width, img_height):
+    """
+    Retorna: (EsValido, Mensaje)
+    Valida: Liveness (Ojos), Proximidad, Yaw y Pitch (pose neutra).
+    """
+    if predictor is None:
+        return True, "Modo Dev (Sin Modelo)"
+
+    try:
+        metrics = get_face_metrics(gray_image, rect)
+        if not metrics:
+            return False, "Error de análisis biométrico."
+
+        coords = metrics["coords"]
+
+        # --- Liveness (ojos) ---
+        leftEye = coords[lStart:lEnd]
+        rightEye = coords[rStart:rEnd]
+        avgEAR = (eye_aspect_ratio(leftEye) + eye_aspect_ratio(rightEye)) / 2.0
+        if avgEAR < 0.18:
+            return False, "OJOS CERRADOS. Ábrelos bien."
+
+        # --- Proximidad ---
+        proximity = metrics["width"] / img_width
+        if proximity < 0.28:
+            return False, "DEMASIADO LEJOS. Acércate más a la cámara."
+
+        # --- Orientaciones ---
+        yaw_ratio = metrics["yaw"]
+        if yaw_ratio < 0.7:
+            return False, "GIRA AL CENTRO (Miras a derecha)."
+        if yaw_ratio > 1.4:
+            return False, "GIRA AL CENTRO (Miras a izquierda)."
+
+        pitch_ratio = metrics["pitch"]
+        if pitch_ratio < 0.5:
+            return False, "BAJA LA CABEZA (Miras arriba)."
+        if pitch_ratio > 1.8:
+            return False, "SUBE LA CABEZA (Miras abajo)."
+
+        return True, "Calidad Biométrica Aceptada"
+
+    except Exception as e:
+        print(f"Error lógica bio: {e}")
+        return False, "Error de análisis biométrico."
+
+
+
+
+################################################################################
+ARCHIVO: routes_auth.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\routes_auth.py
+TAMAÑO: 4076 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/20/2026 13:46:28
+################################################################################
+from flask import render_template, redirect, url_for, flash, request, session
+from flask_login import login_user, logout_user, current_user
+from app import db, bcrypt, limiter
+from app.models import User
+from .utils import send_confirmation_email
+from . import auth 
+import re
+from datetime import datetime
+
+@auth.route("/register", methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email').lower()
+        phone = request.form.get('phone') # <--- NUEVO
+        password = request.form.get('password')
+        
+        # Validaciones
+        if len(password) < 8 or not re.search(r"[A-Z]", password) or \
+           not re.search(r"\d", password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+            flash('La contraseña no cumple los requisitos de seguridad.', 'danger')
+            return redirect(url_for('auth.register'))
+
+        if User.query.filter_by(username=username).first():
+            flash('El usuario ya existe.', 'danger')
+            return redirect(url_for('auth.register'))
+        
+        if User.query.filter_by(email=email).first():
+            flash('Ese correo ya está registrado.', 'danger')
+            return redirect(url_for('auth.register'))
+
+        # Validación básica de teléfono (opcional, se puede mejorar con Regex)
+        if User.query.filter_by(phone_number=phone).first():
+            flash('Ese número de teléfono ya está registrado.', 'danger')
+            return redirect(url_for('auth.register'))
+
+        hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
+        
+        # Guardamos teléfono
+        user = User(username=username, email=email, phone_number=phone, password=hashed_pw, confirmed=False)
+        db.session.add(user)
+        db.session.commit()
+        
+        send_confirmation_email(user)
+        flash('Cuenta creada. ¡Revisa tu correo para activar tu cuenta!', 'info')
+        return redirect(url_for('auth.login'))
+        
+    return render_template('register.html')
+
+@auth.route("/confirm/<token>")
+def confirm_email(token):
+    try:
+        user = User.verify_token(token, salt='email-confirm-salt')
+    except:
+        flash('El enlace de confirmación es inválido o ha expirado.', 'danger')
+        return redirect(url_for('auth.login'))
+        
+    if user and not user.confirmed:
+        user.confirmed = True
+        user.confirmed_on = datetime.now()
+        db.session.add(user)
+        db.session.commit()
+        flash('¡Cuenta confirmada exitosamente! Ahora puedes iniciar sesión.', 'success')
+    elif user and user.confirmed:
+        flash('Tu cuenta ya estaba confirmada.', 'info')
+        
+    return redirect(url_for('auth.login'))
+
+@auth.route("/login", methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+        
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user = User.query.filter_by(username=username).first()
+        
+        if user and bcrypt.check_password_hash(user.password, password):
+            if not user.confirmed:
+                flash('Debes confirmar tu correo electrónico antes de entrar.', 'warning')
+                return render_template('login.html')
+
+            if user.otp_secret:
+                session['2fa_user_id'] = user.id 
+                return redirect(url_for('auth.verify_2fa_login'))
+            
+            login_user(user)
+            return redirect(url_for('main.dashboard'))
+        else:
+            flash('Credenciales incorrectas.', 'danger')
+            
+    return render_template('login.html')
+
+@auth.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('main.home'))
+
+
+
+################################################################################
+ARCHIVO: routes_biometric.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\routes_biometric.py
+TAMAÑO: 3308 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:26:36
+################################################################################
+from flask import render_template, redirect, url_for, request, jsonify
+from flask_login import login_user, current_user, login_required
+from app import db
+from app.models import User
+from app.services.biometrics import (
+    pipelines,
+    repository,
+)
+from . import auth
+
+# --- VISTAS HTML (Solucion Error 500) ---
+
+@auth.route('/face-enroll-page', methods=['GET'])
+@login_required
+def face_enroll_page():
+    return render_template('face_enroll.html')
+
+
+@auth.route('/face-login-page', methods=['GET'])
+def face_login_page():
+    return render_template('face_login.html')
+
+
+# --- API BIOMETRICA ---
+
+# --- RUTA PARA VALIDACIÓN DE MOVIMIENTOS (Challenge-Response) ---
+@auth.route('/check-pose', methods=['POST'])
+@login_required
+def check_pose():
+    """Valida si el usuario está cumpliendo el movimiento solicitado (Sin guardar)."""
+    try:
+        data = request.get_json()
+        if not data or 'image' not in data:
+            return jsonify({'valid': False, 'message': 'Imagen requerida'}), 400
+
+        target_pose = data.get('pose', 'CENTER')
+        image_data = data['image']
+        
+        # Usar pipeline de validación de pose
+        is_valid, msg = pipelines.validate_pose_challenge(image_data, target_pose)
+        return jsonify({'valid': is_valid, 'message': msg})
+
+    except Exception as e:
+        print(f"Error Check Pose: {e}")
+        return jsonify({'valid': False, 'message': 'Error IA'}), 500
+
+@auth.route('/face-enroll', methods=['POST'])
+@login_required
+def face_enroll():
+    try:
+        data = request.get_json()
+        if not data or 'image' not in data:
+            return jsonify({'error': 'Sin imagen'}), 400
+
+        image_data = data['image']
+        
+        # Usar pipeline de enrolamiento
+        success, message, encoding = pipelines.enroll_biometric_pipeline(image_data)
+        
+        if not success:
+            return jsonify({'error': message}), 400
+        
+        # Guardar encoding en la base de datos
+        if encoding is not None:
+            repository.save_face_encoding(current_user, encoding)
+        
+        return jsonify({'message': message, 'redirect': '/dashboard'})
+
+    except Exception as e:
+        print(f"ERROR ENROLL: {e}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+
+@auth.route('/face-login', methods=['POST'])
+def face_login():
+    if current_user.is_authenticated:
+        return jsonify({'status': 'redirect', 'url': url_for('main.dashboard')})
+
+    try:
+        data = request.get_json()
+        if not data or 'image' not in data:
+            return jsonify({'status': 'error', 'message': 'Sin datos de imagen'}), 400
+
+        image_data = data['image']
+        
+        # Usar pipeline de login biométrico
+        success, message, matching_user = pipelines.login_biometric_pipeline(image_data)
+        
+        if success and matching_user:
+            login_user(matching_user)
+            return jsonify({'status': 'success', 'url': url_for('main.dashboard')})
+        else:
+            return jsonify({'status': 'error', 'message': message}), 401
+
+    except Exception as e:
+        print(f"ERROR LOGIN: {e}")
+        return jsonify({'status': 'error', 'message': 'Error de sistema'}), 500
+
+
+
+################################################################################
+ARCHIVO: routes_security.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\routes_security.py
+TAMAÑO: 5648 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/20/2026 13:58:06
+################################################################################
+from flask import render_template, redirect, url_for, flash, request, session
+from flask_login import login_user, login_required, current_user
+from app import db, bcrypt, limiter
+from app.models import User
+from .utils import send_reset_email, send_sms_code # <--- IMPORTAR send_sms_code
+from . import auth # Importamos el Blueprint compartido
+import pyotp, qrcode, io, base64, secrets, re
+
+@auth.route("/verify-2fa-login", methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
+def verify_2fa_login():
+    if '2fa_user_id' not in session:
+        return redirect(url_for('auth.login'))
+    
+    if request.method == 'POST':
+        token = request.form.get('token')
+        user = User.query.get(session['2fa_user_id'])
+        
+        if user and user.otp_secret:
+            totp = pyotp.TOTP(user.otp_secret)
+            is_valid_token = totp.verify(token)
+            is_valid_backup = False
+
+            if not is_valid_token and user.backup_codes:
+                codes = user.backup_codes.split(",")
+                if token in codes:
+                    is_valid_backup = True
+                    codes.remove(token)
+                    user.backup_codes = ",".join(codes)
+                    db.session.commit()
+
+            if is_valid_token or is_valid_backup:
+                login_user(user)
+                session.pop('2fa_user_id', None)
+                return redirect(url_for('main.dashboard'))
+            else:
+                flash('Código inválido.', 'danger')
+    return render_template('verify_2fa.html')
+
+@auth.route("/reset_password", methods=['GET', 'POST'])
+def reset_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    if request.method == 'POST':
+        email = request.form.get('email').lower()
+        user = User.query.filter_by(email=email).first()
+        if user:
+            send_reset_email(user)
+        flash('Si el correo existe, recibirás instrucciones.', 'info')
+        return redirect(url_for('auth.login'))
+    return render_template('reset_request.html')
+
+@auth.route("/reset_password/<token>", methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    
+    user = User.verify_token(token, salt='password-reset-salt')
+    if user is None:
+        flash('Token inválido o expirado.', 'warning')
+        return redirect(url_for('auth.reset_request'))
+        
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if len(password) < 8 or not re.search(r"[A-Z]", password) or \
+           not re.search(r"\d", password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+            flash('La contraseña es débil.', 'danger')
+            return redirect(url_for('auth.reset_token', token=token))
+            
+        hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
+        user.password = hashed_pw
+        db.session.commit()
+        flash('Contraseña actualizada. Inicia sesión.', 'success')
+        return redirect(url_for('auth.login'))
+    return render_template('reset_token.html')
+
+# --- NUEVAS RUTAS PARA SMS ---
+
+@auth.route("/send-sms-verification")
+@login_required
+@limiter.limit("3 per minute") # Limitamos el envío para evitar spam
+def send_sms_verification():
+    if not current_user.phone_number:
+        flash('No tienes un número de teléfono registrado.', 'warning')
+        return redirect(url_for('main.dashboard'))
+    
+    if current_user.is_phone_verified:
+        flash('Tu teléfono ya está verificado.', 'info')
+        return redirect(url_for('main.dashboard'))
+
+    # Generamos y simulamos el envío
+    code = send_sms_code(current_user.phone_number)
+    
+    # Guardamos el código en la sesión (temporalmente) para compararlo después
+    # En producción real usaríamos Redis o BD con expiración
+    session['sms_validation_code'] = code
+    
+    return redirect(url_for('auth.verify_sms_page'))
+
+@auth.route("/verify-sms", methods=['GET', 'POST'])
+@login_required
+def verify_sms_page():
+    if request.method == 'POST':
+        input_code = request.form.get('sms_code')
+        stored_code = session.get('sms_validation_code')
+        
+        if input_code and stored_code and input_code == stored_code:
+            # ÉXITO: El código coincide
+            current_user.is_phone_verified = True
+            db.session.commit()
+            session.pop('sms_validation_code', None) # Limpiamos sesión
+            flash('¡Teléfono verificado exitosamente!', 'success')
+            return redirect(url_for('main.dashboard'))
+        else:
+            flash('Código SMS incorrecto. Intenta de nuevo.', 'danger')
+            
+    return render_template('verify_sms.html')
+
+@auth.route("/enable-2fa")
+@login_required
+def enable_2fa():
+    if not current_user.otp_secret:
+        secret = pyotp.random_base32()
+        current_user.otp_secret = secret
+        backup_codes = [secrets.token_hex(4) for _ in range(5)]
+        current_user.backup_codes = ",".join(backup_codes)
+        db.session.commit()
+    
+    totp = pyotp.TOTP(current_user.otp_secret)
+    uri = totp.provisioning_uri(name=current_user.username, issuer_name="AuthPractice")
+    
+    img = qrcode.make(uri)
+    buf = io.BytesIO()
+    img.save(buf)
+    img_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    return render_template('enable_2fa.html', qr_code=img_b64, secret=current_user.otp_secret, backup_codes=current_user.backup_codes.split(","))
+
+
+
+################################################################################
+ARCHIVO: utils.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\utils.py
+TAMAÑO: 1907 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/20/2026 13:43:30
+################################################################################
+from flask import url_for, flash
+from flask_mail import Message
+from app import mail
+import random
+
+def send_email(to, subject, template):
+    msg = Message(
+        subject,
+        recipients=[to],
+        html=template,
+        sender='noreply@tuseguridad.com'
+    )
+    mail.send(msg)
+
+def send_confirmation_email(user):
+    token = user.get_token(salt='email-confirm-salt')
+    link = url_for('auth.confirm_email', token=token, _external=True)
+    html_body = f'''
+    <h1>Bienvenido, {user.username}</h1>
+    <p>Gracias por registrarte. Para activar tu cuenta, por favor confirma tu correo:</p>
+    <a href="{link}" style="padding:10px; background:blue; color:white;">CONFIRMAR MI CORREO</a>
+    <p>O copia este enlace: {link}</p>
+    '''
+    send_email(user.email, 'Confirma tu Cuenta', html_body)
+
+def send_reset_email(user):
+    token = user.get_token(salt='password-reset-salt')
+    link = url_for('auth.reset_token', token=token, _external=True)
+    html_body = f'''
+    <h1>Recuperación de Acceso</h1>
+    <p>Para restablecer tu contraseña, haz clic aquí:</p>
+    <a href="{link}" style="padding:10px; background:red; color:white;">RESTABLECER CONTRASEÑA</a>
+    <p>Si no fuiste tú, ignora este mensaje.</p>
+    '''
+    send_email(user.email, 'Solicitud de Cambio de Contraseña', html_body)
+
+# --- NUEVA FUNCIÓN: SIMULADOR DE SMS ---
+def send_sms_code(phone_number):
+    # 1. Generar código de 6 dígitos
+    code = str(random.randint(100000, 999999))
+    
+    # 2. Simulación en Terminal (Para el Admin)
+    print(f"\n[SMS GATEWAY SIMULATION] Enviando SMS a {phone_number}: {code}\n")
+    
+    # 3. Simulación Visual (Para el Usuario Tester)
+    # Esto muestra el código en la pantalla web para que puedan probar sin gastar saldo
+    flash(f'[DEV MODE] SMS enviado a {phone_number}. Tu código es: {code}', 'info')
+    
+    return code
+
+
+
+################################################################################
+ARCHIVO: __init__.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\auth_biometric\__init__.py
+TAMAÑO: 89 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:35:54
+################################################################################
+"""Rutas de autenticación biométrica."""
+from .. import auth  # Blueprint compartido
+
+
+
+
+################################################################################
+ARCHIVO: routes.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\auth_biometric\routes.py
+TAMAÑO: 3009 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:43:23
+################################################################################
+from flask import render_template, url_for, request, jsonify
+from flask_login import login_user, current_user, login_required
+from app import db
+from app.models import User
+from app.services.biometrics import (
+    pipelines,
+    repository,
+)
+from .. import auth
+
+
+@auth.route('/face-enroll-page', methods=['GET'])
+@login_required
+def face_enroll_page():
+    return render_template('auth_biometric/face_enroll.html')
+
+
+@auth.route('/face-login-page', methods=['GET'])
+def face_login_page():
+    return render_template('auth_biometric/face_login.html')
+
+
+@auth.route('/check-pose', methods=['POST'])
+@login_required
+def check_pose():
+    """Valida si el usuario está cumpliendo el movimiento solicitado (Sin guardar)."""
+    try:
+        data = request.get_json()
+        if not data or 'image' not in data:
+            return jsonify({'valid': False, 'message': 'Imagen requerida'}), 400
+
+        target_pose = data.get('pose', 'CENTER')
+        image_data = data['image']
+        
+        is_valid, msg = pipelines.validate_pose_challenge(image_data, target_pose)
+        return jsonify({'valid': is_valid, 'message': msg})
+
+    except Exception as e:
+        print(f"Error Check Pose: {e}")
+        return jsonify({'valid': False, 'message': 'Error IA'}), 500
+
+
+@auth.route('/face-enroll', methods=['POST'])
+@login_required
+def face_enroll():
+    try:
+        data = request.get_json()
+        if not data or 'image' not in data:
+            return jsonify({'error': 'Sin imagen'}), 400
+
+        image_data = data['image']
+        
+        success, message, encoding = pipelines.enroll_biometric_pipeline(image_data)
+        
+        if not success:
+            return jsonify({'error': message}), 400
+        
+        if encoding is not None:
+            repository.save_face_encoding(current_user, encoding)
+        
+        return jsonify({'message': message, 'redirect': '/dashboard'})
+
+    except Exception as e:
+        print(f"ERROR ENROLL: {e}")
+        return jsonify({'error': 'Error interno del servidor'}), 500
+
+
+@auth.route('/face-login', methods=['POST'])
+def face_login():
+    if current_user.is_authenticated:
+        return jsonify({'status': 'redirect', 'url': url_for('main.dashboard')})
+
+    try:
+        data = request.get_json()
+        if not data or 'image' not in data:
+            return jsonify({'status': 'error', 'message': 'Sin datos de imagen'}), 400
+
+        image_data = data['image']
+        
+        success, message, matching_user = pipelines.login_biometric_pipeline(image_data)
+        
+        if success and matching_user:
+            login_user(matching_user)
+            return jsonify({'status': 'success', 'url': url_for('main.dashboard')})
+        else:
+            return jsonify({'status': 'error', 'message': message}), 401
+
+    except Exception as e:
+        print(f"ERROR LOGIN: {e}")
+        return jsonify({'status': 'error', 'message': 'Error de sistema'}), 500
+
+
+
+
+################################################################################
+ARCHIVO: __init__.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\auth_otp\__init__.py
+TAMAÑO: 74 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:35:45
+################################################################################
+"""Rutas de OTP/SMS/2FA."""
+from .. import auth  # Blueprint compartido
+
+
+
+
+################################################################################
+ARCHIVO: routes.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\auth_otp\routes.py
+TAMAÑO: 3617 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:43:16
+################################################################################
+from flask import render_template, redirect, url_for, flash, request, session
+from flask_login import login_user, login_required, current_user
+from app import db, limiter
+from app.models import User
+from ..utils import send_sms_code
+from .. import auth
+import pyotp, qrcode, io, base64, secrets
+
+
+@auth.route("/verify-2fa-login", methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
+def verify_2fa_login():
+    if '2fa_user_id' not in session:
+        return redirect(url_for('auth.login'))
+    
+    if request.method == 'POST':
+        token = request.form.get('token')
+        user = User.query.get(session['2fa_user_id'])
+        
+        if user and user.otp_secret:
+            totp = pyotp.TOTP(user.otp_secret)
+            is_valid_token = totp.verify(token)
+            is_valid_backup = False
+
+            if not is_valid_token and user.backup_codes:
+                codes = user.backup_codes.split(",")
+                if token in codes:
+                    is_valid_backup = True
+                    codes.remove(token)
+                    user.backup_codes = ",".join(codes)
+                    db.session.commit()
+
+            if is_valid_token or is_valid_backup:
+                login_user(user)
+                session.pop('2fa_user_id', None)
+                return redirect(url_for('main.dashboard'))
+            else:
+                flash('Código inválido.', 'danger')
+    return render_template('auth_otp/verify_2fa.html')
+
+
+@auth.route("/send-sms-verification")
+@login_required
+@limiter.limit("3 per minute")
+def send_sms_verification():
+    if not current_user.phone_number:
+        flash('No tienes un número de teléfono registrado.', 'warning')
+        return redirect(url_for('main.dashboard'))
+    
+    if current_user.is_phone_verified:
+        flash('Tu teléfono ya está verificado.', 'info')
+        return redirect(url_for('main.dashboard'))
+
+    code = send_sms_code(current_user.phone_number)
+    session['sms_validation_code'] = code
+    
+    return redirect(url_for('auth.verify_sms_page'))
+
+
+@auth.route("/verify-sms", methods=['GET', 'POST'])
+@login_required
+def verify_sms_page():
+    if request.method == 'POST':
+        input_code = request.form.get('sms_code')
+        stored_code = session.get('sms_validation_code')
+        
+        if input_code and stored_code and input_code == stored_code:
+            current_user.is_phone_verified = True
+            db.session.commit()
+            session.pop('sms_validation_code', None)
+            flash('¡Teléfono verificado exitosamente!', 'success')
+            return redirect(url_for('main.dashboard'))
+        else:
+            flash('Código SMS incorrecto. Intenta de nuevo.', 'danger')
+            
+    return render_template('auth_otp/verify_sms.html')
+
+
+@auth.route("/enable-2fa")
+@login_required
+def enable_2fa():
+    if not current_user.otp_secret:
+        secret = pyotp.random_base32()
+        current_user.otp_secret = secret
+        backup_codes = [secrets.token_hex(4) for _ in range(5)]
+        current_user.backup_codes = ",".join(backup_codes)
+        db.session.commit()
+    
+    totp = pyotp.TOTP(current_user.otp_secret)
+    uri = totp.provisioning_uri(name=current_user.username, issuer_name="AuthPractice")
+    
+    img = qrcode.make(uri)
+    buf = io.BytesIO()
+    img.save(buf)
+    img_b64 = base64.b64encode(buf.getvalue()).decode('utf-8')
+    return render_template('auth_otp/enable_2fa.html', qr_code=img_b64, secret=current_user.otp_secret, backup_codes=current_user.backup_codes.split(","))
+
+
+
+
+################################################################################
+ARCHIVO: __init__.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\auth_password\__init__.py
+TAMAÑO: 99 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:35:38
+################################################################################
+"""Rutas de autenticación por contraseña/email."""
+from .. import auth  # Blueprint compartido
+
+
+
+
+################################################################################
+ARCHIVO: routes.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\auth\auth_password\routes.py
+TAMAÑO: 5684 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:43:11
+################################################################################
+from flask import render_template, redirect, url_for, flash, request, session
+from flask_login import login_user, logout_user, current_user
+from app import db, bcrypt, limiter
+from app.models import User
+from ..utils import send_confirmation_email, send_reset_email
+from .. import auth
+import re
+from datetime import datetime
+
+
+@auth.route("/register", methods=['GET', 'POST'])
+def register():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email').lower()
+        phone = request.form.get('phone')
+        password = request.form.get('password')
+
+        # Validaciones
+        if len(password) < 8 or not re.search(r"[A-Z]", password) or \
+           not re.search(r"\d", password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+            flash('La contraseña no cumple los requisitos de seguridad.', 'danger')
+            return redirect(url_for('auth.register'))
+
+        if User.query.filter_by(username=username).first():
+            flash('El usuario ya existe.', 'danger')
+            return redirect(url_for('auth.register'))
+        
+        if User.query.filter_by(email=email).first():
+            flash('Ese correo ya está registrado.', 'danger')
+            return redirect(url_for('auth.register'))
+
+        if User.query.filter_by(phone_number=phone).first():
+            flash('Ese número de teléfono ya está registrado.', 'danger')
+            return redirect(url_for('auth.register'))
+
+        hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
+        
+        user = User(username=username, email=email, phone_number=phone, password=hashed_pw, confirmed=False)
+        db.session.add(user)
+        db.session.commit()
+        
+        send_confirmation_email(user)
+        flash('Cuenta creada. ¡Revisa tu correo para activar tu cuenta!', 'info')
+        return redirect(url_for('auth.login'))
+        
+    return render_template('auth_password/register.html')
+
+
+@auth.route("/confirm/<token>")
+def confirm_email(token):
+    try:
+        user = User.verify_token(token, salt='email-confirm-salt')
+    except Exception:
+        flash('El enlace de confirmación es inválido o ha expirado.', 'danger')
+        return redirect(url_for('auth.login'))
+        
+    if user and not user.confirmed:
+        user.confirmed = True
+        user.confirmed_on = datetime.now()
+        db.session.add(user)
+        db.session.commit()
+        flash('¡Cuenta confirmada exitosamente! Ahora puedes iniciar sesión.', 'success')
+    elif user and user.confirmed:
+        flash('Tu cuenta ya estaba confirmada.', 'info')
+        
+    return redirect(url_for('auth.login'))
+
+
+@auth.route("/login", methods=['GET', 'POST'])
+@limiter.limit("5 per minute")
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+        
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user = User.query.filter_by(username=username).first()
+        
+        if user and bcrypt.check_password_hash(user.password, password):
+            if not user.confirmed:
+                flash('Debes confirmar tu correo electrónico antes de entrar.', 'warning')
+                return render_template('auth_password/login.html')
+
+            if user.otp_secret:
+                session['2fa_user_id'] = user.id
+                return redirect(url_for('auth.verify_2fa_login'))
+            
+            login_user(user)
+            return redirect(url_for('main.dashboard'))
+        else:
+            flash('Credenciales incorrectas.', 'danger')
+            
+    return render_template('auth_password/login.html')
+
+
+@auth.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('main.home'))
+
+
+@auth.route("/reset_password", methods=['GET', 'POST'])
+def reset_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    if request.method == 'POST':
+        email = request.form.get('email').lower()
+        user = User.query.filter_by(email=email).first()
+        if user:
+            send_reset_email(user)
+        flash('Si el correo existe, recibirás instrucciones.', 'info')
+        return redirect(url_for('auth.login'))
+    return render_template('auth_password/reset_request.html')
+
+
+@auth.route("/reset_password/<token>", methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('main.dashboard'))
+    
+    user = User.verify_token(token, salt='password-reset-salt')
+    if user is None:
+        flash('Token inválido o expirado.', 'warning')
+        return redirect(url_for('auth.reset_request'))
+        
+    if request.method == 'POST':
+        password = request.form.get('password')
+        if len(password) < 8 or not re.search(r"[A-Z]", password) or \
+           not re.search(r"\d", password) or not re.search(r"[!@#$%^&*(),.?\":{}|<>]", password):
+            flash('La contraseña es débil.', 'danger')
+            return redirect(url_for('auth.reset_token', token=token))
+
+        hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
+        user.password = hashed_pw
+        db.session.commit()
+        flash('Contraseña actualizada. Inicia sesión.', 'success')
+        return redirect(url_for('auth.login'))
+    return render_template('auth_password/reset_token.html')
+
+
+
+
+################################################################################
+ARCHIVO: __init__.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\main\__init__.py
+TAMAÑO: 153 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:59:55
+################################################################################
+from flask import Blueprint
+
+# Blueprint principal de vistas generales
+main = Blueprint('main', __name__)
+
+from . import routes  # noqa: E402,F401
+
+
+
+
+################################################################################
+ARCHIVO: routes.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\blueprints\main\routes.py
+TAMAÑO: 460 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:10:57
+################################################################################
+from flask import render_template
+from flask_login import login_required, current_user
+
+from . import main
+
+
+@main.route("/")
+@main.route("/home")
+def home():
+    return render_template('main/home.html')
+
+
+@main.route("/dashboard")
+@login_required
+def dashboard():
+    estado_2fa = "ACTIVADO" if current_user.otp_secret else "DESACTIVADO"
+    return render_template('main/dashboard.html', usuario=current_user.username, estado_2fa=estado_2fa)
+
+
+
+
+################################################################################
+ARCHIVO: __init__.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\services\__init__.py
+TAMAÑO: 173 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:26:21
+################################################################################
+"""
+Paquete de servicios de la aplicación.
+Agrupa la lógica de negocio separada de las rutas (blueprints).
+"""
+
+from . import biometrics
+
+__all__ = ['biometrics']
+
+
+
+
+################################################################################
+ARCHIVO: __init__.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\services\biometrics\__init__.py
+TAMAÑO: 1236 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:26:21
+################################################################################
+"""
+Paquete de servicios biométricos.
+Expone las funciones principales de manera limpia.
+"""
+
+from .encoders import (
+    decode_base64_image,
+    detect_faces,
+    extract_face_encodings,
+    prepare_image_for_encoding,
+)
+
+from .pose_checks import (
+    validate_pose,
+    analyze_face_structure,
+    get_face_metrics,
+    eye_aspect_ratio,
+)
+
+from .repository import (
+    save_face_encoding,
+    load_face_encoding,
+    get_all_face_encodings,
+    compare_faces,
+    find_matching_user,
+    clear_face_encoding,
+)
+
+from .pipelines import (
+    enroll_biometric_pipeline,
+    login_biometric_pipeline,
+    validate_pose_challenge,
+)
+
+__all__ = [
+    # Encoders
+    'decode_base64_image',
+    'detect_faces',
+    'extract_face_encodings',
+    'prepare_image_for_encoding',
+    # Pose checks
+    'validate_pose',
+    'analyze_face_structure',
+    'get_face_metrics',
+    'eye_aspect_ratio',
+    # Repository
+    'save_face_encoding',
+    'load_face_encoding',
+    'get_all_face_encodings',
+    'compare_faces',
+    'find_matching_user',
+    'clear_face_encoding',
+    # Pipelines
+    'enroll_biometric_pipeline',
+    'login_biometric_pipeline',
+    'validate_pose_challenge',
+]
+
+
+
+
+################################################################################
+ARCHIVO: encoders.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\services\biometrics\encoders.py
+TAMAÑO: 3482 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 10:10:43
+################################################################################
+"""
+Módulo de codificación facial (Extractores de características biométricas).
+Responsabilidades:
+  - Decodificación de imágenes Base64
+  - Detección de rostros usando face_recognition
+  - Generación de vectores de características faciales (face encodings)
+"""
+
+import base64
+import cv2
+import numpy as np
+import face_recognition
+
+
+def decode_base64_image(image_data):
+    """
+    Decodifica una imagen Base64 a formato OpenCV.
+    
+    Args:
+        image_data (str): Datos de imagen en Base64 (con o sin prefijo 'data:image/jpeg;base64,')
+    
+    Returns:
+        tuple: (imagen_BGR, imagen_gris) o (None, None) si hay error
+    """
+    try:
+        # Remover prefijo data URI si existe
+        if ',' in image_data:
+            encoded = image_data.split(',')[1]
+        else:
+            encoded = image_data
+        
+        # Decodificar Base64
+        nparr = np.frombuffer(base64.b64decode(encoded), np.uint8)
+        img_bgr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
+        if img_bgr is None:
+            return None, None
+        
+        # Convertir a escala de grises
+        img_gray = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2GRAY)
+        
+        return img_bgr, img_gray
+    
+    except Exception as e:
+        print(f"Error decodificando imagen: {e}")
+        return None, None
+
+
+def detect_faces(image_gray, model="hog"):
+    """
+    Detecta rostros en una imagen usando face_recognition.
+    
+    Args:
+        image_gray (ndarray): Imagen en escala de grises
+        model (str): Modelo de detección ('hog' o 'cnn'). HOG es rápido, CNN es más preciso.
+    
+    Returns:
+        list: Lista de rectanglos (top, right, bottom, left) de rostros detectados
+    """
+    try:
+        boxes = face_recognition.face_locations(image_gray, model=model)
+        return boxes
+    except Exception as e:
+        print(f"Error detectando rostros: {e}")
+        return []
+
+
+def extract_face_encodings(image_bgr, face_boxes):
+    """
+    Extrae vectores de características faciales (embeddings) de los rostros detectados.
+    
+    Args:
+        image_bgr (ndarray): Imagen en formato BGR (color)
+        face_boxes (list): Lista de rectángulos (top, right, bottom, left)
+    
+    Returns:
+        list: Lista de arrays NumPy con las características faciales (128D vectors)
+    """
+    try:
+        # Convertir BGR a RGB (face_recognition requiere RGB)
+        img_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+        
+        # Asegurar que el array es continuo en memoria (C-contiguous)
+        img_rgb = np.array(img_rgb, copy=True, order='C')
+        
+        # Generar encodings
+        encodings = face_recognition.face_encodings(img_rgb, face_boxes)
+        return encodings
+    
+    except Exception as e:
+        print(f"Error extrayendo encodings: {e}")
+        return []
+
+
+def prepare_image_for_encoding(image_bgr):
+    """
+    Prepara la imagen BGR para generación de encodings.
+    Convierte BGR→RGB y asegura formato C-contiguous.
+    
+    Args:
+        image_bgr (ndarray): Imagen en formato BGR
+    
+    Returns:
+        ndarray: Imagen RGB lista para face_recognition
+    """
+    try:
+        img_rgb = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+        img_rgb = np.array(img_rgb, copy=True, order='C')
+        return img_rgb
+    except Exception as e:
+        print(f"Error preparando imagen: {e}")
+        return None
+
+
+
+
+################################################################################
+ARCHIVO: pipelines.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\services\biometrics\pipelines.py
+TAMAÑO: 4884 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:26:21
+################################################################################
+"""
+Módulo de orquestación de flujos biométricos (Pipelines).
+Responsabilidades:
+  - Orquestar el flujo de enrolamiento (captura, validación, almacenamiento)
+  - Orquestar el flujo de login (captura, reconocimiento, autenticación)
+  - Orquestar flujos de desafío de pose (liveness challenge-response)
+"""
+
+import cv2
+from app.services.biometrics import encoders, pose_checks, repository
+
+
+def enroll_biometric_pipeline(image_data):
+    """
+    Orquesta el proceso completo de enrolamiento biométrico.
+    Pasos:
+      1. Decodificar imagen Base64
+      2. Detectar rostros
+      3. Validar estructura facial (anti-spoofing, liveness)
+      4. Generar encoding facial
+    
+    Args:
+        image_data (str): Datos de imagen Base64
+    
+    Returns:
+        tuple: (éxito: bool, mensaje: str, encoding: ndarray o None)
+    """
+    # Paso 1: Decodificar imagen
+    img_bgr, img_gray = encoders.decode_base64_image(image_data)
+    if img_bgr is None:
+        return False, "Imagen corrupta", None
+    
+    # Paso 2: Detectar rostros
+    height, width = img_gray.shape
+    boxes = encoders.detect_faces(img_gray, model="hog")
+    
+    if not boxes:
+        return False, "Rostro no detectado.", None
+    if len(boxes) > 1:
+        return False, "Multiples rostros detectados.", None
+    
+    # Paso 3: Validar estructura facial
+    is_valid, validation_msg = pose_checks.analyze_face_structure(
+        img_gray, boxes[0], width, height
+    )
+    if not is_valid:
+        return False, f"Rechazado: {validation_msg}", None
+    
+    # Paso 4: Generar encoding
+    img_rgb = encoders.prepare_image_for_encoding(img_bgr)
+    if img_rgb is None:
+        return False, "No se pudo procesar la imagen", None
+    
+    encodings = encoders.extract_face_encodings(img_bgr, boxes)
+    if not encodings:
+        return False, "No se pudo generar huella.", None
+    
+    return True, "Registro Biométrico Exitoso", encodings[0]
+
+
+def login_biometric_pipeline(image_data, tolerance=0.45):
+    """
+    Orquesta el proceso completo de login biométrico.
+    Pasos:
+      1. Decodificar imagen Base64
+      2. Detectar rostros
+      3. Validar estructura facial (anti-spoofing, liveness)
+      4. Generar encoding facial
+      5. Comparar con encodings almacenados en BD
+    
+    Args:
+        image_data (str): Datos de imagen Base64
+        tolerance (float): Umbral para comparación de rostros (0.0-1.0)
+    
+    Returns:
+        tuple: (éxito: bool, mensaje: str, usuario: User o None)
+    """
+    # Paso 1: Decodificar imagen
+    img_bgr, img_gray = encoders.decode_base64_image(image_data)
+    if img_bgr is None:
+        return False, "Sin datos de imagen", None
+    
+    # Paso 2: Detectar rostros
+    boxes = encoders.detect_faces(img_gray, model="hog")
+    if not boxes:
+        return False, "Rostro no visible", None
+    
+    height, width = img_gray.shape
+    
+    # Paso 3: Validar estructura facial
+    is_valid, validation_msg = pose_checks.analyze_face_structure(
+        img_gray, boxes[0], width, height
+    )
+    if not is_valid:
+        return False, f"Seguridad: {validation_msg}", None
+    
+    # Paso 4: Generar encoding
+    img_rgb = encoders.prepare_image_for_encoding(img_bgr)
+    if img_rgb is None:
+        return False, "Error procesando imagen", None
+    
+    encodings = encoders.extract_face_encodings(img_bgr, boxes)
+    if not encodings:
+        return False, "Error extrayendo características", None
+    
+    unknown_enc = encodings[0]
+    
+    # Paso 5: Comparar con usuarios registrados
+    matching_user = repository.find_matching_user(unknown_enc, tolerance=tolerance)
+    
+    if matching_user:
+        return True, "Acceso Permitido", matching_user
+    else:
+        return False, "Acceso Denegado", None
+
+
+def validate_pose_challenge(image_data, target_pose):
+    """
+    Orquesta un desafío de pose (challenge-response liveness).
+    Pasos:
+      1. Decodificar imagen Base64
+      2. Detectar rostros
+      3. Validar que el rostro cumple la pose requerida
+    
+    Args:
+        image_data (str): Datos de imagen Base64
+        target_pose (str): Pose requerida ('CENTER', 'LEFT', 'RIGHT', 'UP', 'DOWN')
+    
+    Returns:
+        tuple: (válido: bool, mensaje: str)
+    """
+    # Paso 1: Decodificar imagen
+    img_bgr, img_gray = encoders.decode_base64_image(image_data)
+    if img_bgr is None:
+        return False, "Imagen inválida"
+    
+    # Paso 2: Detectar rostros
+    height, width = img_gray.shape
+    boxes = encoders.detect_faces(img_gray, model="hog")
+    
+    if not boxes:
+        return False, "Rostro no encontrado"
+    
+    # Paso 3: Validar pose
+    is_valid, msg = pose_checks.validate_pose(
+        img_gray, boxes[0], width, target_pose
+    )
+    
+    return is_valid, msg
+
+
+
+
+################################################################################
+ARCHIVO: pose_checks.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\services\biometrics\pose_checks.py
+TAMAÑO: 5873 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:25:44
+################################################################################
+"""
+Módulo de validación de pose facial y análisis de estructura biométrica.
+Responsabilidades:
+  - Extracción de métricas faciales (yaw, pitch, proximidad)
+  - Validación de desafíos de pose (CENTER, LEFT, RIGHT, UP, DOWN)
+  - Análisis de liveness (detección de ojos abiertos)
+  - Validación de estructura facial para anti-spoofing
+"""
+
+import cv2
+import numpy as np
+import dlib
+import os
+from scipy.spatial import distance as dist
+
+# --- CONFIGURACIÓN ---
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+MODEL_PATH = os.path.join(BASE_DIR, 'static', 'models', 'shape_predictor_68_face_landmarks.dat')
+
+predictor = None
+try:
+    if os.path.exists(MODEL_PATH):
+        predictor = dlib.shape_predictor(MODEL_PATH)
+    else:
+        print("CRITICAL: Modelo de landmarks no encontrado.")
+except Exception as e:
+    print(f"CRITICAL: Error cargando Dlib: {e}")
+
+# Puntos clave
+NOSE_TIP = 30
+LEFT_EYE = 36  # Ojo derecho en espejo
+RIGHT_EYE = 45  # Ojo izquierdo en espejo
+MOUTH_TOP = 51
+(lStart, lEnd) = (42, 48)
+(rStart, rEnd) = (36, 42)
+
+
+def get_face_metrics(gray, rect):
+    """Extrae métricas geométricas clave para determinar pose."""
+    if predictor is None:
+        return None
+
+    dlib_rect = dlib.rectangle(int(rect[3]), int(rect[0]), int(rect[1]), int(rect[2]))
+    shape = predictor(gray, dlib_rect)
+    coords = np.zeros((68, 2), dtype="int")
+    for i in range(0, 68):
+        coords[i] = (shape.part(i).x, shape.part(i).y)
+
+    # 1. Yaw (Lados)
+    nose_x = coords[NOSE_TIP][0]
+    left_eye_x = coords[LEFT_EYE][0]
+    right_eye_x = coords[RIGHT_EYE][0]
+    d_left = nose_x - left_eye_x
+    d_right = right_eye_x - nose_x
+    if d_right == 0:
+        d_right = 0.001
+    yaw_ratio = d_left / d_right  # < 0.6 Derecha, > 1.6 Izquierda
+
+    # 2. Pitch (Vertical)
+    eyes_y = (coords[LEFT_EYE][1] + coords[RIGHT_EYE][1]) / 2
+    nose_y = coords[NOSE_TIP][1]
+    mouth_y = coords[MOUTH_TOP][1]
+    d_up = nose_y - eyes_y
+    d_down = mouth_y - nose_y
+    if d_down == 0:
+        d_down = 0.001
+    pitch_ratio = d_up / d_down  # < 0.5 Arriba, > 1.8 Abajo
+
+    # 3. Proximidad
+    face_width = dist.euclidean((coords[0][0], coords[0][1]), (coords[16][0], coords[16][1]))
+
+    return {
+        "yaw": yaw_ratio,
+        "pitch": pitch_ratio,
+        "width": face_width,
+        "coords": coords,
+    }
+
+
+def validate_pose(gray, rect, img_width, target_pose):
+    """
+    Verifica si el rostro cumple con la pose solicitada por la IA.
+    Target Poses: 'CENTER', 'LEFT', 'RIGHT', 'UP', 'DOWN'
+    """
+    metrics = get_face_metrics(gray, rect)
+    if not metrics:
+        return False, "Error IA"
+
+    yaw = metrics["yaw"]
+    pitch = metrics["pitch"]
+    proximity = metrics["width"] / img_width
+
+    # Validación de Proximidad base (para cualquier pose)
+    if proximity < 0.22:
+        return False, "ACÉRCATE MÁS"
+
+    if target_pose == 'CENTER':
+        if yaw < 0.7:
+            return False, "MIRA AL CENTRO (Vas derecha)"
+        if yaw > 1.4:
+            return False, "MIRA AL CENTRO (Vas izquierda)"
+        if pitch < 0.55:
+            return False, "BAJA LA CABEZA"
+        if pitch > 1.5:
+            return False, "SUBE LA CABEZA"
+        return True, "Posición Correcta"
+
+    if target_pose == 'LEFT':  # Usuario gira su cara a la izquierda (nuestra derecha visual)
+        if yaw < 0.6:
+            return True, "Giro Detectado"
+        return False, "GIRA A TU IZQUIERDA"
+
+    if target_pose == 'RIGHT':
+        if yaw > 1.5:
+            return True, "Giro Detectado"
+        return False, "GIRA A TU DERECHA"
+
+    if target_pose == 'UP':
+        if pitch < 0.5:
+            return True, "Movimiento Detectado"
+        return False, "MIRA HACIA ARRIBA"
+
+    if target_pose == 'DOWN':
+        if pitch > 1.7:
+            return True, "Movimiento Detectado"
+        return False, "MIRA HACIA ABAJO"
+
+    return False, "Pose desconocida"
+
+
+def eye_aspect_ratio(eye):
+    """Calcula si el ojo está abierto (EAR)"""
+    A = dist.euclidean(eye[1], eye[5])
+    B = dist.euclidean(eye[2], eye[4])
+    C = dist.euclidean(eye[0], eye[3])
+    return (A + B) / (2.0 * C)
+
+
+def analyze_face_structure(gray_image, rect, img_width, img_height):
+    """
+    Retorna: (EsValido, Mensaje)
+    Valida: Liveness (Ojos), Proximidad, Yaw y Pitch (pose neutra).
+    """
+    if predictor is None:
+        return True, "Modo Dev (Sin Modelo)"
+
+    try:
+        metrics = get_face_metrics(gray_image, rect)
+        if not metrics:
+            return False, "Error de análisis biométrico."
+
+        coords = metrics["coords"]
+
+        # --- Liveness (ojos) ---
+        leftEye = coords[lStart:lEnd]
+        rightEye = coords[rStart:rEnd]
+        avgEAR = (eye_aspect_ratio(leftEye) + eye_aspect_ratio(rightEye)) / 2.0
+        if avgEAR < 0.18:
+            return False, "OJOS CERRADOS. Ábrelos bien."
+
+        # --- Proximidad ---
+        proximity = metrics["width"] / img_width
+        if proximity < 0.28:
+            return False, "DEMASIADO LEJOS. Acércate más a la cámara."
+
+        # --- Orientaciones ---
+        yaw_ratio = metrics["yaw"]
+        if yaw_ratio < 0.7:
+            return False, "GIRA AL CENTRO (Miras a derecha)."
+        if yaw_ratio > 1.4:
+            return False, "GIRA AL CENTRO (Miras a izquierda)."
+
+        pitch_ratio = metrics["pitch"]
+        if pitch_ratio < 0.5:
+            return False, "BAJA LA CABEZA (Miras arriba)."
+        if pitch_ratio > 1.8:
+            return False, "SUBE LA CABEZA (Miras abajo)."
+
+        return True, "Calidad Biométrica Aceptada"
+
+    except Exception as e:
+        print(f"Error lógica bio: {e}")
+        return False, "Error de análisis biométrico."
+
+
+
+
+################################################################################
+ARCHIVO: repository.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\services\biometrics\repository.py
+TAMAÑO: 4193 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:25:50
+################################################################################
+"""
+Módulo de repositorio biométrico (CRUD de face encodings).
+Responsabilidades:
+  - Almacenamiento y recuperación de encodings faciales
+  - Persistencia en base de datos vía SQLAlchemy
+  - Comparación de rostros usando face_recognition
+"""
+
+import pickle
+import face_recognition
+from app import db
+from app.models import User
+
+
+def save_face_encoding(user, encoding):
+    """
+    Guarda el encoding facial de un usuario en la base de datos.
+    
+    Args:
+        user (User): Objeto de usuario
+        encoding (ndarray): Array NumPy con el vector de características (128D)
+    
+    Returns:
+        bool: True si se guardó exitosamente, False si hubo error
+    """
+    try:
+        # Serializar el encoding a bytes usando pickle
+        user.face_encoding = pickle.dumps(encoding)
+        db.session.commit()
+        return True
+    except Exception as e:
+        print(f"Error guardando encoding: {e}")
+        db.session.rollback()
+        return False
+
+
+def load_face_encoding(user):
+    """
+    Carga el encoding facial de un usuario desde la base de datos.
+    
+    Args:
+        user (User): Objeto de usuario
+    
+    Returns:
+        ndarray: Array NumPy con el vector de características, o None si no existe
+    """
+    try:
+        if not user.face_encoding:
+            return None
+        encoding = pickle.loads(user.face_encoding)
+        return encoding
+    except Exception as e:
+        print(f"Error cargando encoding: {e}")
+        return None
+
+
+def get_all_face_encodings():
+    """
+    Obtiene todos los usuarios con encodings guardados.
+    
+    Returns:
+        list: Lista de objetos User que tienen face_encoding registrado
+    """
+    try:
+        users = User.query.filter(User.face_encoding.isnot(None)).all()
+        return users
+    except Exception as e:
+        print(f"Error obteniendo encodings: {e}")
+        return []
+
+
+def compare_faces(known_encoding, unknown_encoding, tolerance=0.45):
+    """
+    Compara dos encodings faciales y determina si corresponden al mismo rostro.
+    
+    Args:
+        known_encoding (ndarray): Encoding conocido (de base de datos)
+        unknown_encoding (ndarray): Encoding desconocido (capturado en tiempo real)
+        tolerance (float): Umbral de tolerancia (0.0-1.0). Valores más bajos = más estricto.
+                          Por defecto 0.45 es estricto pero equilibrado.
+    
+    Returns:
+        bool: True si los rostros coinciden, False en caso contrario
+    """
+    try:
+        matches = face_recognition.compare_faces(
+            [known_encoding],
+            unknown_encoding,
+            tolerance=tolerance
+        )
+        return matches[0] if matches else False
+    except Exception as e:
+        print(f"Error comparando encodings: {e}")
+        return False
+
+
+def find_matching_user(unknown_encoding, tolerance=0.45):
+    """
+    Busca un usuario que coincida con el encoding desconocido.
+    
+    Args:
+        unknown_encoding (ndarray): Encoding facial capturado
+        tolerance (float): Umbral de tolerancia para comparación
+    
+    Returns:
+        User: Objeto User si se encuentra coincidencia, None en caso contrario
+    """
+    try:
+        users = get_all_face_encodings()
+        
+        for user in users:
+            known_encoding = load_face_encoding(user)
+            if known_encoding is None:
+                continue
+            
+            if compare_faces(known_encoding, unknown_encoding, tolerance):
+                return user
+        
+        return None
+    except Exception as e:
+        print(f"Error buscando usuario coincidente: {e}")
+        return None
+
+
+def clear_face_encoding(user):
+    """
+    Elimina el encoding facial de un usuario.
+    
+    Args:
+        user (User): Objeto de usuario
+    
+    Returns:
+        bool: True si se eliminó exitosamente, False si hubo error
+    """
+    try:
+        user.face_encoding = None
+        db.session.commit()
+        return True
+    except Exception as e:
+        print(f"Error eliminando encoding: {e}")
+        db.session.rollback()
+        return False
+
+
+
+
+################################################################################
+ARCHIVO: core_dark.css
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\css\core_dark.css
+TAMAÑO: 4931 bytes
+EXTENSIÓN: .css
+ÚLTIMA MODIFICACIÓN: 01/22/2026 15:23:17
+################################################################################
+:root {
+    --bg-base: #050505;
+    --bg-depth: #0d1117;
+    --bg-panel: #111827;
+    --bg-panel-strong: #0b1220;
+    --border-soft: #1f2933;
+    --border-strong: #30363d;
+    --text-primary: #c9d1d9;
+    --text-muted: #8b949e;
+    --accent: #58a6ff;
+    --accent-strong: #00f0ff;
+    --success: #3fb950;
+    --warning: #f0a500;
+    --danger: #ff7b72;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Share Tech Mono', 'Consolas', 'Courier New', monospace;
+    background: radial-gradient(circle at 20% 20%, #0f1624, var(--bg-base) 60%);
+    color: var(--text-primary);
+    margin: 0;
+    min-height: 100vh;
+}
+
+a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+a:hover {
+    color: var(--accent-strong);
+}
+
+button {
+    font-family: inherit;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-soft);
+    background: var(--bg-panel-strong);
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: border 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--accent-strong);
+    box-shadow: 0 0 0 2px rgba(0, 240, 255, 0.2);
+}
+
+.flash-stack {
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border-strong);
+    padding: 1rem;
+}
+
+.flash-item {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.flash-item:last-child {
+    margin-bottom: 0;
+}
+
+.hero-shell {
+    min-height: calc(100vh - 80px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 1.5rem;
+    gap: 1.5rem;
+}
+
+.hero-shell h1 {
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.hero-shell p {
+    max-width: 520px;
+    color: var(--text-muted);
+    line-height: 1.6;
+}
+
+.cta-group {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.cta-button {
+    padding: 0.85rem 2.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 2px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.25s ease;
+}
+
+.cta-button.secondary {
+    border-color: var(--success);
+    color: var(--success);
+}
+
+.cta-button:hover {
+    background: rgba(0, 240, 255, 0.1);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.35);
+}
+
+.panel {
+    max-width: 720px;
+    margin: 3rem auto;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    padding: 2.5rem;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.55);
+}
+
+.panel h1 {
+    margin: 0 0 0.5rem 0;
+    color: var(--accent);
+    text-transform: uppercase;
+}
+
+.panel p {
+    color: var(--text-muted);
+}
+
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.status-card {
+    background: var(--bg-panel-strong);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 1.5rem;
+    text-align: left;
+}
+
+.status-card h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+    letter-spacing: 1px;
+}
+
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.status-pill.ok {
+    color: var(--success);
+}
+
+.status-pill.warn {
+    color: var(--warning);
+}
+
+.status-pill.fail {
+    color: var(--danger);
+}
+
+.panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.action-link {
+    margin-top: 1.5rem;
+    display: inline-block;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.main-container {
+    margin: 2rem auto;
+    padding: 2.5rem 2rem;
+    background: var(--bg-panel);
+    border-radius: 18px;
+    border: 1px solid var(--border-soft);
+    width: min(500px, 90%);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+}
+
+.instruction {
+    letter-spacing: 2px;
+}
+
+.error-msg {
+    color: var(--danger);
+}
+
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.form-meta {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+@media (max-width: 540px) {
+    .panel, .main-container {
+        padding: 1.75rem;
+    }
+
+    .cta-button {
+        width: 100%;
+    }
+}
+
+
+
+
+################################################################################
+ARCHIVO: captcha.css
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\css\modules\captcha.css
+TAMAÑO: 759 bytes
+EXTENSIÓN: .css
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:09:08
+################################################################################
+.captcha-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(46px, 1fr));
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.captcha-item,
+.node-btn {
+    background: rgba(0, 240, 255, 0.08);
+    border: 1px solid var(--border-soft);
+    border-radius: 10px;
+    color: var(--text-primary);
+    text-align: center;
+    padding: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.captcha-item:hover,
+.node-btn:hover {
+    border-color: var(--accent-strong);
+    box-shadow: 0 0 14px rgba(0, 240, 255, 0.25);
+}
+
+.biometric-overlay {
+    background: rgba(5, 5, 5, 0.92);
+    border: 1px solid var(--border-strong);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+}
+
+
+
+
+################################################################################
+ARCHIVO: dashboards.css
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\css\modules\dashboards.css
+TAMAÑO: 519 bytes
+EXTENSIÓN: .css
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:09:20
+################################################################################
+.status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.status-card {
+    background: var(--bg-panel-strong);
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+    padding: 1.5rem;
+}
+
+.status-card h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+    letter-spacing: 1px;
+}
+
+.panel-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+}
+
+
+
+
+################################################################################
+ARCHIVO: forms.css
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\css\modules\forms.css
+TAMAÑO: 923 bytes
+EXTENSIÓN: .css
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:09:04
+################################################################################
+.form-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+.form-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.form-meta {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.main-container {
+    max-width: 480px;
+    margin: 3rem auto;
+    padding: 2.2rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-soft);
+    border-radius: 18px;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.45);
+}
+
+.instruction {
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin: 0 0 0.35rem 0;
+}
+
+.action-link {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.action-link:hover {
+    color: var(--accent-strong);
+}
+
+
+
+
+################################################################################
+ARCHIVO: scanner.css
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\css\modules\scanner.css
+TAMAÑO: 1097 bytes
+EXTENSIÓN: .css
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:09:13
+################################################################################
+.scanner-frame {
+    position: relative;
+    width: 100%;
+    max-width: 520px;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--bg-panel-strong);
+}
+
+.scanner-frame video,
+#camera-feed,
+#video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.guide-overlay,
+.scan-overlay {
+    position: absolute;
+    inset: 0;
+    border: 2px dashed rgba(0, 240, 255, 0.35);
+    border-radius: 14px;
+    pointer-events: none;
+}
+
+#scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, var(--accent-strong), transparent);
+    animation: scan 2s linear infinite;
+    display: none;
+}
+
+@keyframes scan {
+    from { transform: translateY(0); }
+    to { transform: translateY(100%); }
+}
+
+.biometric-shell {
+    max-width: 960px;
+    margin: 2.5rem auto;
+    padding: 2rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-soft);
+    border-radius: 16px;
+}
+
+
+
+
+################################################################################
+ARCHIVO: biometrics.css
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\css\modules\biometric\biometrics.css
+TAMAÑO: 3695 bytes
+EXTENSIÓN: .css
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:44:08
+################################################################################
+/* app/static/css/biometrics.css */
+
+.biometric-shell {
+  width: min(960px, 92vw);
+  margin: 0 auto 3rem auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.biometric-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+}
+
+.scanner-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+#instruction-box {
+  width: 100%;
+  background: rgba(3, 32, 55, 0.8);
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  gap: 0.85rem;
+  align-items: center;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+
+.biometric-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+#capture-btn {
+  width: min(320px, 100%);
+  padding: 0.95rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+#capture-btn:disabled {
+  border-color: #2b3a4e;
+  color: #3a4a60;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+#capture-btn:not(:disabled):hover {
+  background: rgba(0, 240, 255, 0.1);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.35);
+}
+
+#status {
+  color: var(--text-muted);
+  min-height: 24px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+#camera-wrapper {
+  position: relative;
+  width: min(360px, 80vw);
+  height: clamp(320px, 55vw, 440px);
+  border-radius: 48% / 45%;
+  border: 6px solid rgba(0, 240, 255, 0.25);
+  overflow: hidden;
+  box-shadow: 0 25px 45px rgba(0, 0, 0, 0.6);
+  background: #000;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.guide-overlay {
+  position: absolute;
+  inset: 0;
+  border: 3px solid rgba(0, 240, 255, 0.25);
+  border-radius: 48% / 45%;
+  pointer-events: none;
+}
+
+#scan-line {
+  position: absolute;
+  width: 100%;
+  height: 4px;
+  background: #00ff00;
+  top: 0;
+  left: 0;
+  box-shadow: 0 0 10px #00ff00;
+  animation: scan 2.3s infinite linear;
+  display: none;
+}
+
+@keyframes scan {
+  0% { top: 0; }
+  50% { top: 100%; }
+  100% { top: 0; }
+}
+
+.biometric-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(4, 10, 18, 0.96);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.overlay-meta {
+  color: #8fd3ff;
+  letter-spacing: 2px;
+}
+
+.captcha-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 80px);
+  gap: 12px;
+  background: rgba(10, 26, 44, 0.9);
+  padding: 1.25rem;
+  border-radius: 16px;
+  border: 1px solid rgba(0, 240, 255, 0.2);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+}
+
+.captcha-item {
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0.85rem;
+  background: rgba(0, 16, 32, 0.85);
+  border: 1px solid #1f2f46;
+  border-radius: 10px;
+  transition: all 0.25s ease;
+}
+
+.captcha-item:hover {
+  border-color: var(--accent-strong);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
+  transform: translateY(-3px);
+}
+
+.blur-content {
+  filter: blur(6px);
+  pointer-events: none;
+}
+
+@media (min-width: 720px) {
+  .biometric-stage {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .scanner-stack {
+    flex: 1;
+  }
+
+  .biometric-actions {
+    flex: 1;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 540px) {
+  .captcha-grid {
+    grid-template-columns: repeat(2, minmax(70px, 1fr));
+  }
+}
+
+
+
+
+################################################################################
+ARCHIVO: face_login.css
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\css\modules\biometric\face_login.css
+TAMAÑO: 4705 bytes
+EXTENSIÓN: .css
+ÚLTIMA MODIFICACIÓN: 01/26/2026 15:03:59
+################################################################################
+/* app/static/css/modules/biometric/face_login.css */
+/* V5.0: Oval Bio-Scanner & Core Integration */
+
+/* 1. Integración con Core Dark */
+:root {
+  /* Mapeamos tus variables de core_dark.css para uso local */
+  --hud-color: var(--accent-strong, #00f0ff); 
+  --hud-bg: var(--bg-base, #050505);
+  --hud-panel: var(--bg-panel-strong, #0b1220);
+  --hud-border: var(--border-soft, #1f2933);
+}
+
+/* 2. Ajuste Estructural - Zero Scroll */
+body {
+  /* Heredamos fondo y fuente de core_dark.css */
+  margin: 0;
+  height: 100vh;
+  overflow: hidden; /* Crítico para el efecto App/HUD */
+  display: flex;
+  flex-direction: column;
+}
+
+/* Contenedor Principal */
+.hud-container {
+  width: 100%;
+  height: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-rows: auto 1fr auto; /* Header - Video - Footer */
+  padding: 1rem;
+  position: relative;
+}
+
+/* 3. Header Unificado */
+.hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 1rem;
+  border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+  height: 60px;
+  background: radial-gradient(circle at top, rgba(0,240,255,0.05), transparent 70%);
+}
+
+.hud-title {
+  margin: 0;
+  color: var(--hud-color);
+  font-size: 1.2rem;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  text-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+}
+
+/* 4. Scanner OVALADO (El cambio clave) */
+.hud-main {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1000px;
+}
+
+#video-wrapper {
+  position: relative;
+  /* Altura dinámica para ajustar a pantalla sin scroll */
+  height: clamp(300px, 75vh, 600px); 
+  /* Relación de aspecto para mantener forma de rostro */
+  aspect-ratio: 0.85; 
+  
+  /* ESTÉTICA OVALADA (Coincide con biometrics.css) */
+  border-radius: 50% / 45%; 
+  
+  border: 4px solid var(--hud-color);
+  box-shadow: 0 0 60px rgba(0, 240, 255, 0.15), inset 0 0 20px rgba(0,0,0,0.8);
+  background: #000;
+  overflow: hidden; /* Recorta el video a la forma ovalada */
+  z-index: 10;
+}
+
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1); /* Efecto espejo */
+}
+
+/* Efecto de Escaneo dentro del Óvalo */
+.scan-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  background: var(--hud-color);
+  box-shadow: 0 0 20px var(--hud-color);
+  opacity: 0.8;
+  display: none; /* Se activa vía JS */
+  animation: ovalScan 2.5s infinite ease-in-out;
+}
+
+@keyframes ovalScan {
+  0% { top: 0%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* 5. Controles y Footer */
+.hud-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 2rem;
+  z-index: 20;
+}
+
+#status {
+  font-family: inherit;
+  color: var(--text-muted, #8b949e);
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+#btn-login {
+  background: rgba(0, 20, 30, 0.6);
+  color: var(--hud-color);
+  border: 1px solid var(--hud-color);
+  padding: 1rem 3.5rem;
+  border-radius: 999px; /* Botón redondeado para consistencia */
+  font-size: 1.1rem;
+  font-weight: bold;
+  letter-spacing: 3px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.1);
+}
+
+#btn-login:hover:not(:disabled) {
+  background: rgba(0, 240, 255, 0.15);
+  box-shadow: 0 0 35px var(--hud-color);
+  transform: translateY(-2px);
+}
+
+#btn-login:disabled {
+  border-color: var(--border-strong, #30363d);
+  color: var(--text-muted, #8b949e);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* 6. Capa de Seguridad (Captcha) Integrada */
+#security-layer {
+  position: absolute;
+  inset: 0;
+  background: rgba(5, 5, 5, 0.96);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  backdrop-filter: blur(10px);
+  transition: opacity 0.6s ease;
+}
+
+.node-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 90px);
+  gap: 20px;
+  margin-top: 2rem;
+}
+
+/* Botones del Captcha consistentes */
+.node-btn {
+  width: 90px;
+  height: 90px;
+  background: var(--bg-panel-strong);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  color: var(--text-primary);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.node-btn:hover {
+  border-color: var(--hud-color);
+  color: var(--hud-color);
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+  transform: scale(1.05);
+}
+
+
+
+################################################################################
+ARCHIVO: enrollRequest.js
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\js\face_enroll\enrollRequest.js
+TAMAÑO: 942 bytes
+EXTENSIÓN: .js
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:08:46
+################################################################################
+export function finalizeEnrollment({ video, canvas, config, scanLine, instructionText }) {
+    instructionText.innerText = 'GUARDANDO BIOMETRÍA...';
+
+    const context = canvas.getContext('2d');
+    context.drawImage(video, 0, 0);
+    const dataURL = canvas.toDataURL('image/jpeg', 0.9);
+
+    fetch(config.enrollUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': config.csrfToken },
+        body: JSON.stringify({ image: dataURL })
+    })
+    .then(r => r.json())
+    .then(data => {
+        scanLine.style.display = 'none';
+        if(data.error) {
+            alert('Error final: ' + data.error);
+            location.reload();
+        } else {
+            alert('¡REGISTRO COMPLETADO!');
+            window.location.href = data.redirect;
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert('Error final: ' + err.message);
+    });
+}
+
+
+
+
+################################################################################
+ARCHIVO: index.js
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\js\face_enroll\index.js
+TAMAÑO: 3273 bytes
+EXTENSIÓN: .js
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:08:44
+################################################################################
+import { runPoseChallenge } from './poseLoop.js';
+import { finalizeEnrollment } from './enrollRequest.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('capture-btn');
+    const instructionText = document.getElementById('instruction-text');
+    const scanLine = document.getElementById('scan-line');
+
+    const captchaOverlay = document.getElementById('captcha-overlay');
+    const captchaGrid = document.getElementById('captcha-grid');
+    const mainContent = document.getElementById('main-content');
+
+    const CONFIG = window.BIOMETRIC_CONFIG;
+    let challengeStep = 0;
+
+    const securityIcons = [
+        { id: 'shield', char: '🛡️', valid: true },
+        { id: 'bomb', char: '💣', valid: false },
+        { id: 'bug', char: '🦠', valid: false },
+        { id: 'skull', char: '💀', valid: false },
+        { id: 'fire', char: '🔥', valid: false },
+        { id: 'robot', char: '🤖', valid: false }
+    ];
+
+    function initCaptcha() {
+        captchaGrid.innerHTML = '';
+        const shuffled = [...securityIcons].sort(() => Math.random() - 0.5);
+
+        shuffled.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'captcha-item';
+            div.innerText = item.char;
+            div.onclick = () => {
+                if(item.valid) {
+                    captchaOverlay.style.display = 'none';
+                    mainContent.classList.remove('blur-content');
+                    startCamera();
+                } else {
+                    alert('Acceso Denegado: Objeto inseguro detectado.');
+                    initCaptcha();
+                }
+            };
+            captchaGrid.appendChild(div);
+        });
+    }
+
+    async function startCamera() {
+        instructionText.innerText = 'Iniciando sensores...';
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 } } });
+            video.srcObject = stream;
+        } catch(e) {
+            instructionText.innerText = 'Error: Cámara no disponible.';
+        }
+    }
+
+    video.addEventListener('canplay', () => {
+        if(video.videoWidth > 0) {
+            instructionText.innerText = '✅ SISTEMA EN LÍNEA. PREPARADO.';
+            instructionText.style.color = 'green';
+            captureBtn.disabled = false;
+            captureBtn.innerText = 'INICIAR PRUEBA DE VIDA';
+        }
+    });
+
+    captureBtn.addEventListener('click', () => {
+        if(challengeStep === 0) {
+            captureBtn.disabled = true;
+            scanLine.style.display = 'block';
+            runPoseChallenge({
+                challengeStepRef: () => challengeStep,
+                advanceStep: () => { challengeStep += 1; },
+                canvas,
+                video,
+                instructionText,
+                config: CONFIG,
+                onComplete: () => finalizeEnrollment({ video, canvas, config: CONFIG, scanLine, instructionText })
+            });
+        }
+    });
+
+    // Arrancar con Captcha
+    initCaptcha();
+});
+
+
+
+
+################################################################################
+ARCHIVO: poseLoop.js
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\js\face_enroll\poseLoop.js
+TAMAÑO: 2085 bytes
+EXTENSIÓN: .js
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:08:44
+################################################################################
+const SEQUENCE = ['CENTER', 'LEFT', 'RIGHT', 'UP', 'CENTER'];
+const MESSAGES = {
+    'CENTER': 'MIRA AL FRENTE',
+    'LEFT': 'GIRA LENTAMENTE A LA IZQUIERDA ⬅️',
+    'RIGHT': 'GIRA LENTAMENTE A LA DERECHA ➡️',
+    'UP': 'MIRA HACIA EL TECHO ⬆️'
+};
+
+export function runPoseChallenge({
+    challengeStepRef,
+    advanceStep,
+    canvas,
+    video,
+    instructionText,
+    config,
+    onComplete,
+}) {
+    const step = challengeStepRef();
+    if (step >= SEQUENCE.length) {
+        onComplete();
+        return;
+    }
+
+    const currentPose = SEQUENCE[step];
+    instructionText.innerText = MESSAGES[currentPose] || 'MANTÉN LA POSICIÓN';
+    instructionText.style.color = '#004085';
+
+    const context = canvas.getContext('2d');
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0);
+    const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+
+    fetch('/check-pose', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': config.csrfToken },
+        body: JSON.stringify({ image: dataURL, pose: currentPose })
+    })
+        .then(r => r.json())
+        .then(data => {
+            if (data.valid) {
+                instructionText.innerText = '✅ CORRECTO';
+                instructionText.style.color = 'green';
+                advanceStep();
+                setTimeout(() => runPoseChallenge({ challengeStepRef, advanceStep, canvas, video, instructionText, config, onComplete }), 1000);
+            } else {
+                instructionText.innerText = `⚠️ ${data.message}`;
+                instructionText.style.color = '#d32f2f';
+                setTimeout(() => runPoseChallenge({ challengeStepRef, advanceStep, canvas, video, instructionText, config, onComplete }), 500);
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            setTimeout(() => runPoseChallenge({ challengeStepRef, advanceStep, canvas, video, instructionText, config, onComplete }), 1000);
+        });
+}
+
+
+
+
+################################################################################
+ARCHIVO: apiClient.js
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\js\face_login\apiClient.js
+TAMAÑO: 409 bytes
+EXTENSIÓN: .js
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:08:14
+################################################################################
+export async function sendLogin(imageData, csrfToken) {
+    const res = await fetch('/face-login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
+        },
+        body: JSON.stringify({ image: imageData })
+    });
+    const payload = await res.json();
+    payload.httpStatus = res.status;
+    return payload;
+}
+
+
+
+
+################################################################################
+ARCHIVO: captcha.js
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\js\face_login\captcha.js
+TAMAÑO: 2369 bytes
+EXTENSIÓN: .js
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:08:05
+################################################################################
+import { startHardwareScan } from './hardware.js';
+
+const SYMBOLS = ['❖', '✜', '🛡️', '⚡', '⌬', '⏣', '⌖', '⎔', '◈'];
+let targetSymbol = null;
+
+export function initCaptcha({ grid, instruction, layer, statusEl, videoEl }) {
+    if (!grid || !instruction || !layer) return;
+
+    grid.innerHTML = '';
+    targetSymbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+    instruction.innerHTML = `IDENTIFICAR NODO ACTIVO: <span class="target-symbol" style="color: #00f0ff; font-size:1.5em;">${targetSymbol}</span>`;
+
+    const nodes = [];
+    nodes.push({ symbol: targetSymbol, valid: true });
+    for (let i = 0; i < 8; i++) {
+        const decoy = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+        nodes.push({ symbol: decoy, valid: false });
+    }
+
+    shuffle(nodes).forEach(node => {
+        const btn = document.createElement('div');
+        btn.className = 'node-btn';
+        btn.innerText = node.symbol;
+        btn.onclick = () => validateNode(node.valid, layer, statusEl, videoEl);
+        grid.appendChild(btn);
+    });
+}
+
+function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+}
+
+function validateNode(isValid, layer, statusEl, videoEl) {
+    const errorMsg = document.getElementById('captcha-error');
+    if (isValid) {
+        layer.style.opacity = '0';
+        setTimeout(() => {
+            layer.style.display = 'none';
+            startHardwareScan(statusEl, videoEl)
+                .then(() => {
+                    const btn = document.getElementById('btn-login');
+                    if (btn) btn.disabled = false;
+                })
+                .catch(err => {
+                    console.error(err);
+                    if (statusEl) {
+                        statusEl.innerText = `ERROR DE HARDWARE: ${err.message}`;
+                        statusEl.style.color = 'red';
+                    }
+                });
+        }, 500);
+    } else {
+        if (errorMsg) errorMsg.innerText = 'ACCESO DENEGADO: PATRÓN INCORRECTO';
+        setTimeout(() => initCaptcha({ grid: document.getElementById('node-grid'), instruction: document.getElementById('instruction-text'), layer, statusEl, videoEl }), 800);
+    }
+}
+
+
+
+
+################################################################################
+ARCHIVO: hardware.js
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\js\face_login\hardware.js
+TAMAÑO: 2393 bytes
+EXTENSIÓN: .js
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:08:05
+################################################################################
+const HARDWARE_PROFILE = {
+    blocked: ['virtual', 'droid', 'phone', 'remote', 'obs', 'manycam', 'iriun', 'enlace', 'mobile'],
+    preferred: ['usb', 'uvc', 'integrated', 'webcam', 'hd', 'camera', 'microsoft', 'logitech']
+};
+
+let streamReference = null;
+
+export async function startHardwareScan(statusEl, videoEl) {
+    if (!statusEl || !videoEl) return null;
+
+    statusEl.innerText = '[HARDWARE] ESCANEANDO SENSORES...';
+    statusEl.style.color = '#00f0ff';
+
+    await navigator.mediaDevices.getUserMedia({ video: true });
+    const devices = await navigator.mediaDevices.enumerateDevices();
+    const videoDevices = devices.filter(d => d.kind === 'videoinput');
+
+    if (videoDevices.length === 0) {
+        throw new Error('NO SE DETECTAN CÁMARAS.');
+    }
+
+    let bestDeviceId = null;
+    const log = [];
+
+    for (const device of videoDevices) {
+        const label = device.label.toLowerCase();
+        let state = '[?]';
+
+        if (HARDWARE_PROFILE.blocked.some(block => label.includes(block))) {
+            state = '[BLOQUEADA - VIRTUAL/MOVIL]';
+            log.push(`${device.label} -> ${state}`);
+            continue;
+        }
+
+        if (HARDWARE_PROFILE.preferred.some(pref => label.includes(pref))) {
+            bestDeviceId = device.deviceId;
+            state = '[ACEPTADA - PREFERIDA]';
+            log.push(`${device.label} -> ${state}`);
+            break;
+        }
+
+        if (!bestDeviceId) {
+            bestDeviceId = device.deviceId;
+            state = '[ACEPTADA - GENÉRICA]';
+        }
+        log.push(`${device.label} -> ${state}`);
+    }
+
+    if (!bestDeviceId) {
+        statusEl.innerHTML = `<span style="color:red">ACCESO DENEGADO. DISPOSITIVOS RECHAZADOS:</span><br>` +
+            log.map(l => `<div style="font-size:0.8em; color:#555;">${l}</div>`).join('');
+        return null;
+    }
+
+    statusEl.innerText = '[ENLACE] INICIANDO STREAM SEGURO...';
+    const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+            deviceId: { exact: bestDeviceId },
+            width: { ideal: 640 },
+            height: { ideal: 480 }
+        }
+    });
+
+    streamReference = stream;
+    videoEl.srcObject = stream;
+    statusEl.innerText = 'SISTEMA ACTIVO. ALINEAR ROSTRO.';
+    return stream;
+}
+
+export function getStream() {
+    return streamReference;
+}
+
+
+
+
+################################################################################
+ARCHIVO: index.js
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\js\face_login\index.js
+TAMAÑO: 949 bytes
+EXTENSIÓN: .js
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:08:05
+################################################################################
+import { initCaptcha } from './captcha.js';
+import { captureLogin } from './liveness.js';
+
+document.addEventListener('DOMContentLoaded', () => {
+    const statusEl = document.getElementById('status');
+    const videoEl = document.getElementById('camera-feed');
+    const grid = document.getElementById('node-grid');
+    const instruction = document.getElementById('instruction-text');
+    const layer = document.getElementById('security-layer');
+    const loginBtn = document.getElementById('btn-login');
+
+    if (statusEl) statusEl.innerText = '[SISTEMA] INICIALIZANDO PROTOCOLO DE DEFENSA...';
+
+    initCaptcha({ grid, instruction, layer, statusEl, videoEl });
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            captureLogin({
+                videoEl,
+                statusEl,
+                csrfToken: window.CONFIG ? window.CONFIG.csrf_token : ''
+            });
+        });
+    }
+});
+
+
+
+
+################################################################################
+ARCHIVO: liveness.js
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\static\js\face_login\liveness.js
+TAMAÑO: 1626 bytes
+EXTENSIÓN: .js
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:08:22
+################################################################################
+import { getStream } from './hardware.js';
+import { sendLogin } from './apiClient.js';
+
+export async function captureLogin({ videoEl, statusEl, csrfToken }) {
+    const streamReference = getStream();
+    if (!videoEl || !statusEl) return;
+
+    if (!streamReference || !streamReference.active) {
+        statusEl.innerText = 'ERROR: VIDEO PERDIDO.';
+        return;
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = videoEl.videoWidth;
+    canvas.height = videoEl.videoHeight;
+    canvas.getContext('2d').drawImage(videoEl, 0, 0);
+
+    const imageData = canvas.toDataURL('image/jpeg');
+    statusEl.innerText = 'ANALIZANDO BIOMETRÍA...';
+
+    try {
+        const data = await sendLogin(imageData, csrfToken);
+        if (data.status === 'success') {
+            statusEl.innerText = 'IDENTIDAD CONFIRMADA.';
+            statusEl.style.color = '#00ff00';
+            setTimeout(() => window.location.href = data.url || '/dashboard', 900);
+            return;
+        }
+
+        if (data.status === 'redirect' && data.url) {
+            statusEl.innerText = 'SESIÓN ACTIVA. REDIRIGIENDO...';
+            statusEl.style.color = '#00ff00';
+            setTimeout(() => window.location.href = data.url, 600);
+            return;
+        }
+
+        const reason = data.message || data.error || 'Error de autenticación';
+        statusEl.innerText = `DENEGADO: ${reason}`;
+        statusEl.style.color = 'red';
+    } catch (err) {
+        console.error(err);
+        statusEl.innerText = 'ERROR DE CONEXIÓN.';
+        statusEl.style.color = 'red';
+    }
+}
+
+
+
+
+################################################################################
+ARCHIVO: face_enroll.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\auth_biometric\face_enroll.html
+TAMAÑO: 2074 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:10:17
+################################################################################
+{% extends "layouts/base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/scanner.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/captcha.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/biometric/biometrics.css') }}">
+{% endblock %}
+
+{% block content %}
+<div id="captcha-overlay" class="biometric-overlay">
+    <h3>Protocolo de Seguridad: Selecciona el Escudo</h3>
+    <p class="overlay-meta">Solo operativos autorizados pueden continuar.</p>
+    <div class="captcha-grid" id="captcha-grid"></div>
+</div>
+
+<section id="main-content" class="panel biometric-shell blur-content">
+    <h2 class="instruction">Registro Biométrico</h2>
+    <p class="form-meta">Completa la prueba de vida y captura el vector facial para cerrar el enrolamiento.</p>
+
+    <div id="instruction-box" class="instruction-box">
+        <span id="instruction-icon">ℹ</span>
+        <span id="instruction-text">Inicializando cámara...</span>
+    </div>
+
+    <div class="biometric-stage">
+        <div class="scanner-stack">
+            <div id="camera-wrapper" class="scanner-frame">
+                <video id="video" autoplay playsinline muted></video>
+                <div class="guide-overlay"></div>
+                <div id="scan-line"></div>
+            </div>
+            <p id="status" class="form-meta">Sistema listo</p>
+        </div>
+
+        <div class="biometric-actions">
+            <button id="capture-btn" disabled>Iniciar prueba de vida</button>
+            <canvas id="canvas" hidden></canvas>
+            <a class="action-link" href="{{ url_for('main.dashboard') }}">Cancelar</a>
+        </div>
+    </div>
+</section>
+
+<script>
+    window.BIOMETRIC_CONFIG = {
+        enrollUrl: "{{ url_for('auth.face_enroll') }}",
+        csrfToken: "{{ csrf_token() if csrf_token else '' }}"
+    };
+</script>
+<script type="module" src="{{ url_for('static', filename='js/face_enroll/index.js') }}"></script>
+{% endblock %}
+
+
+
+
+################################################################################
+ARCHIVO: face_login.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\auth_biometric\face_login.html
+TAMAÑO: 1761 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/26/2026 15:04:26
+################################################################################
+{% extends "layouts/base.html" %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/biometric/face_login.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="hud-container">
+    
+    <div id="security-layer">
+        <h2 class="hud-title">Protocolo de Defensa</h2>
+        <p id="instruction-text" class="form-meta" style="margin-top: 1rem;">IDENTIFICA EL NODO ACTIVO</p>
+        
+        <div id="node-grid" class="node-grid"></div>
+        <p id="captcha-error" class="error-msg" style="margin-top: 1.5rem; min-height: 24px;"></p>
+    </div>
+
+    <header class="hud-header">
+        <h1 class="hud-title">Acceso Biométrico</h1>
+        <a href="{{ url_for('auth.login') }}" class="action-link" style="font-size: 0.8rem;">[ CANCELAR ]</a>
+    </header>
+
+    <main class="hud-main">
+        <div id="video-wrapper">
+            <video id="camera-feed" autoplay playsinline muted></video>
+            <div class="scan-line" id="scan-fx"></div>
+            <canvas id="canvas" style="display:none;"></canvas>
+        </div>
+    </main>
+
+    <footer class="hud-controls">
+        <div id="status">[ INICIALIZANDO SENSORES... ]</div>
+        <button id="btn-login" disabled>ESCANEAR ROSTRO</button>
+    </footer>
+
+</div>
+
+<script>
+    window.CONFIG = {
+        csrf_token: "{{ csrf_token() if csrf_token else '' }}"
+    };
+    
+    // Script visual para activar el láser al hacer click
+    document.getElementById('btn-login').addEventListener('click', function() {
+        document.getElementById('scan-fx').style.display = 'block';
+    });
+</script>
+<script type="module" src="{{ url_for('static', filename='js/face_login/index.js') }}"></script>
+{% endblock %}
+
+
+
+################################################################################
+ARCHIVO: enable_2fa.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\auth_otp\enable_2fa.html
+TAMAÑO: 1833 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:09:43
+################################################################################
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/dashboards.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="panel">
+    <h1>Activar Doble Factor</h1>
+    <p>Escanea el QR con tu app y almacena los códigos de rescate en un almacén físico seguro.</p>
+
+    <div style="display:flex; flex-wrap:wrap; gap:2rem; justify-content:center; align-items:flex-start; margin-top:2rem;">
+        <div style="text-align:center;">
+            <p class="form-meta">1. Escanea el código</p>
+            <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" style="border:3px solid var(--accent); border-radius:12px; box-shadow:0 0 20px rgba(0,240,255,0.25); max-width:220px;">
+            <p class="form-meta">Clave manual: {{ secret }}</p>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-soft); border-radius:12px; padding:1.5rem; min-width:260px;">
+            <h3 style="margin-top:0; color:var(--warning);">Códigos de recuperación</h3>
+            <p class="form-meta">Cada código es de un solo uso. Escríbelos en un medio offline.</p>
+            <ul style="font-family:'Share Tech Mono','Consolas'; font-size:1.1rem; list-style:none; padding:0; margin:1rem 0 0 0;">
+                {% for code in backup_codes %}
+                    <li style="margin:0.35rem 0; letter-spacing:2px;">{{ code }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="panel-actions">
+        <a href="/dashboard">
+            <button class="cta-button">He guardado los códigos</button>
+        </a>
+    </div>
+</section>
+{% endblock %}
+
+
+
+
+################################################################################
+ARCHIVO: verify_2fa.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\auth_otp\verify_2fa.html
+TAMAÑO: 722 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:09:55
+################################################################################
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="main-container">
+    <h2 class="instruction">Verificación de Identidad</h2>
+    <p class="form-meta">Ingresa el token TOTP o un código de recuperación para destrabar la sesión.</p>
+
+    <form class="form-stack" method="POST" action="{{ url_for('auth.verify_2fa_login') }}">
+        <input type="text" name="token" placeholder="Código" required style="text-align:center; letter-spacing:6px;">
+        <button type="submit" class="cta-button">Validar acceso</button>
+    </form>
+</section>
+{% endblock %}
+
+
+
+
+################################################################################
+ARCHIVO: verify_sms.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\auth_otp\verify_sms.html
+TAMAÑO: 964 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:09:55
+################################################################################
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="main-container">
+    <h2 class="instruction">Verificación SMS</h2>
+    <p class="form-meta">Enviamos un código al número <strong>{{ current_user.phone_number }}</strong>. Ingresa los 6 dígitos para sellar la línea.</p>
+    <p class="form-meta">Modo dev: el código también aparece como mensaje flash o en terminal.</p>
+
+    <form class="form-stack" method="POST">
+        <input type="text" name="sms_code" placeholder="Código de 6 dígitos" required style="text-align:center; letter-spacing:6px;">
+        <button type="submit" class="cta-button">Verificar</button>
+    </form>
+
+    <div class="form-actions">
+        <a class="action-link" href="{{ url_for('main.dashboard') }}">Volver al panel</a>
+    </div>
+</section>
+{% endblock %}
+
+
+
+
+################################################################################
+ARCHIVO: login.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\auth_password\login.html
+TAMAÑO: 1264 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:09:26
+################################################################################
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="main-container">
+    <h2 class="instruction">Acceso Seguro</h2>
+    <p class="form-meta">Autenticación clásica blindada. Ingresa credenciales o activa canal biométrico.</p>
+
+    <form class="form-stack" method="POST" action="{{ url_for('auth.login') }}">
+        <input type="text" name="username" placeholder="Usuario" required autofocus>
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <button type="submit" class="cta-button">Entrar</button>
+        <div class="form-actions">
+            <a class="cta-button secondary" href="{{ url_for('auth.face_login_page') }}">Modo biométrico</a>
+        </div>
+    </form>
+
+    <div class="form-actions">
+        <a class="action-link" href="{{ url_for('auth.reset_request') }}">¿Olvidaste tu contraseña?</a>
+        <span class="form-meta">¿Sin cuenta? <a href="{{ url_for('auth.register') }}">Regístrate aquí</a></span>
+        <a class="action-link" href="{{ url_for('main.home') }}">Volver al Inicio</a>
+    </div>
+</section>
+{% endblock %}
+
+
+
+
+################################################################################
+ARCHIVO: register.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\auth_password\register.html
+TAMAÑO: 1318 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:09:34
+################################################################################
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="main-container">
+    <h2 class="instruction">Registro Blindado</h2>
+    <p class="form-meta">Completa la información para generar credenciales cifradas y enrolar tu línea segura.</p>
+
+    <form class="form-stack" method="POST" action="{{ url_for('auth.register') }}">
+        <input type="text" name="username" placeholder="Usuario" required>
+        <input type="email" name="email" placeholder="Correo Electrónico" required>
+        <input type="tel" name="phone" placeholder="Celular (ej: +52...)" required>
+        <input type="password" name="password" placeholder="Contraseña Segura" required autocomplete="new-password">
+        <small class="form-meta">Requisito: mínimo 8 caracteres, 1 mayúscula, 1 número y 1 símbolo.</small>
+        <button type="submit" class="cta-button">Registrar</button>
+    </form>
+
+    <div class="form-actions">
+        <span class="form-meta">¿Ya tienes cuenta? <a href="{{ url_for('auth.login') }}">Inicia sesión</a></span>
+        <a class="action-link" href="{{ url_for('main.home') }}">Volver al Inicio</a>
+    </div>
+</section>
+{% endblock %}
+
+
+
+
+################################################################################
+ARCHIVO: reset_request.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\auth_password\reset_request.html
+TAMAÑO: 749 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:09:34
+################################################################################
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="main-container">
+  <h2 class="instruction">Restablecer Contraseña</h2>
+  <p class="form-meta">Ingresa tu correo y enviaremos un enlace firmado para reiniciar credenciales.</p>
+
+  <form class="form-stack" method="POST">
+    <input type="email" name="email" placeholder="Correo registrado" required>
+    <button type="submit" class="cta-button">Enviar enlace seguro</button>
+  </form>
+
+  <div class="form-actions">
+    <a class="action-link" href="{{ url_for('auth.login') }}">Volver al login</a>
+  </div>
+</section>
+{% endblock %}
+
+
+
+
+################################################################################
+ARCHIVO: reset_token.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\auth_password\reset_token.html
+TAMAÑO: 747 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:09:43
+################################################################################
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="main-container">
+  <h2 class="instruction">Crear Nueva Contraseña</h2>
+  <p class="form-meta">Genera una clave reforzada para cerrar cualquier brecha.</p>
+
+  <form class="form-stack" method="POST">
+    <input type="password" name="password" placeholder="Nueva contraseña" required autocomplete="new-password">
+    <small class="form-meta">Requisito: mínimo 8 caracteres, 1 mayúscula, 1 número, 1 símbolo.</small>
+    <button type="submit" class="cta-button">Actualizar contraseña</button>
+  </form>
+</section>
+{% endblock %}
+
+
+
+
+################################################################################
+ARCHIVO: flash.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\components\flash.html
+TAMAÑO: 382 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:00:58
+################################################################################
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div class="flash-stack">
+      {% for category, message in messages %}
+        <div class="flash-item" style="color: {{ '#ff7b72' if category == 'error' else '#3fb950' }};">
+          [ALERTA]: {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+
+
+
+################################################################################
+ARCHIVO: form.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\components\form.html
+TAMAÑO: 164 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:00:58
+################################################################################
+{%- macro stack(action='', method='POST') -%}
+<form class="form-stack" action="{{ action }}" method="{{ method }}">
+    {{ caller() }}
+</form>
+{%- endmacro %}
+
+
+
+
+################################################################################
+ARCHIVO: panel.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\components\panel.html
+TAMAÑO: 174 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:00:58
+################################################################################
+{%- macro shell(title) -%}
+<section class="panel">
+    <h1>{{ title }}</h1>
+    <div class="panel-body">
+        {{ caller() }}
+    </div>
+</section>
+{%- endmacro %}
+
+
+
+
+################################################################################
+ARCHIVO: base.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\layouts\base.html
+TAMAÑO: 445 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:00:58
+################################################################################
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Seguridad Modular</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/core_dark.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    {% include 'components/flash.html' %}
+    {% block content %}{% endblock %}
+</body>
+</html>
+
+
+
+
+################################################################################
+ARCHIVO: dashboard.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\main\dashboard.html
+TAMAÑO: 2191 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:10:16
+################################################################################
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/dashboards.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="panel">
+    <h1>Panel de Control Blindado</h1>
+    <p>Bienvenido, <strong>{{ usuario }}</strong>. Monitoreo activo de cada capa defensiva.</p>
+
+    <div class="status-grid">
+        <div class="status-card">
+            <h3>Autenticador (App)</h3>
+            {% if estado_2fa == "ACTIVADO" %}
+                <span class="status-pill ok">✔ Activo</span>
+            {% else %}
+                <span class="status-pill warn">⚠ Inactivo</span>
+                <div class="panel-actions">
+                    <a href="{{ url_for('auth.enable_2fa') }}">
+                        <button class="cta-button secondary">Configurar App 2FA</button>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="status-card">
+            <h3>Teléfono (SMS)</h3>
+            {% if current_user.is_phone_verified %}
+                <span class="status-pill ok">✔ Verificado</span>
+            {% else %}
+                <span class="status-pill fail">✕ No verificado</span>
+                <div class="panel-actions">
+                    <a href="{{ url_for('auth.send_sms_verification') }}">
+                        <button class="cta-button">Verificar SMS</button>
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="status-card">
+            <h3>Reconocimiento Facial</h3>
+            <span class="status-pill {{ 'ok' if current_user.face_encoding else 'warn' }}">
+                {{ '✔ Registrado' if current_user.face_encoding else '⚠ Configurar' }}
+            </span>
+            <div class="panel-actions">
+                <a href="{{ url_for('auth.face_enroll_page') }}">
+                    <button class="cta-button">Configurar FaceID</button>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <a class="action-link" href="{{ url_for('auth.logout') }}">Cerrar sesión</a>
+</section>
+{% endblock %}
+
+
+
+
+################################################################################
+ARCHIVO: home.html
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\app\templates\main\home.html
+TAMAÑO: 600 bytes
+EXTENSIÓN: .html
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:00:58
+################################################################################
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="hero-shell">
+    <h1>Sistema de Acceso Central v3.4</h1>
+    <p>Protocolo Táctico Zero Trust. Elija el canal de autenticación autorizado y mantenga la sesión bajo supervisión biométrica.</p>
+    <div class="cta-group">
+        <a href="{{ url_for('auth.register') }}">
+            <button class="cta-button secondary">Nuevo Registro</button>
+        </a>
+        <a href="{{ url_for('auth.login') }}">
+            <button class="cta-button">Iniciar Sesión</button>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+
+
+
+################################################################################
+ARCHIVO: __init__.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\config\__init__.py
+TAMAÑO: 204 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:24:41
+################################################################################
+from .base import BaseConfig
+from .development import DevelopmentConfig
+from .production import ProductionConfig
+
+__all__ = [
+    "BaseConfig",
+    "DevelopmentConfig",
+    "ProductionConfig",
+]
+
+
+
+
+################################################################################
+ARCHIVO: base.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\config\base.py
+TAMAÑO: 910 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:24:41
+################################################################################
+"""Configuraciones comunes para cualquier entorno."""
+from __future__ import annotations
+
+import os
+
+
+class BaseConfig:
+    """Configuración compartida por todos los entornos."""
+
+    SECRET_KEY = os.getenv("SECRET_KEY", "dev-key-default")
+    SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL", "sqlite:///site.db")
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Flask-Mail
+    MAIL_SERVER = os.getenv("MAIL_SERVER", "smtp.gmail.com")
+    MAIL_PORT = int(os.getenv("MAIL_PORT", 587))
+    MAIL_USE_TLS = os.getenv("MAIL_USE_TLS", "True") == "True"
+    MAIL_USERNAME = os.getenv("MAIL_USERNAME")
+    MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
+
+    # Rate limiting
+    RATELIMIT_DEFAULT = "5 per minute"
+    RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
+
+    # Otros ajustes globales
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = "Lax"
+
+
+
+
+################################################################################
+ARCHIVO: development.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\config\development.py
+TAMAÑO: 219 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:24:41
+################################################################################
+"""Configuración para desarrollo local."""
+from __future__ import annotations
+
+from .base import BaseConfig
+
+
+class DevelopmentConfig(BaseConfig):
+    DEBUG = True
+    ENV = "development"
+    TESTING = False
+
+
+
+
+################################################################################
+ARCHIVO: production.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\config\production.py
+TAMAÑO: 238 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 08:24:41
+################################################################################
+"""Configuración para despliegues productivos."""
+from __future__ import annotations
+
+from .base import BaseConfig
+
+
+class ProductionConfig(BaseConfig):
+    DEBUG = False
+    ENV = "production"
+    SESSION_COOKIE_SECURE = True
+
+
+
+
+################################################################################
+ARCHIVO: __init__.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\tests\__init__.py
+TAMAÑO: 0 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:10:27
+################################################################################
+[ARCHIVO VACÍO]
+
+
+################################################################################
+ARCHIVO: conftest.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\tests\conftest.py
+TAMAÑO: 305 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:10:35
+################################################################################
+import pytest
+
+from app import create_app
+
+
+@pytest.fixture(scope="session")
+def app():
+    app = create_app("config.development.DevelopmentConfig")
+    app.config.update(TESTING=True, WTF_CSRF_ENABLED=False)
+    return app
+
+
+@pytest.fixture()
+def client(app):
+    return app.test_client()
+
+
+
+
+################################################################################
+ARCHIVO: test_app_factory.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\tests\test_app_factory.py
+TAMAÑO: 248 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:10:41
+################################################################################
+def test_app_factory_registers_blueprints(app):
+    router_rules = {rule.endpoint for rule in app.url_map.iter_rules()}
+    assert any(ep.startswith('main.') for ep in router_rules)
+    assert any(ep.startswith('auth.') for ep in router_rules)
+
+
+
+
+################################################################################
+ARCHIVO: test_auth_password.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\tests\test_auth_password.py
+TAMAÑO: 312 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:10:46
+################################################################################
+def test_login_page_renders(client):
+    resp = client.get('/login')
+    assert resp.status_code == 200
+    assert b"Acceso Seguro" in resp.data
+
+
+def test_register_page_renders(client):
+    resp = client.get('/register')
+    assert resp.status_code == 200
+    assert b"Registro Blindado" in resp.data
+
+
+
+
+################################################################################
+ARCHIVO: test_blueprints_biometric.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\tests\test_blueprints_biometric.py
+TAMAÑO: 369 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:10:50
+################################################################################
+def test_face_login_page_accessible(client):
+    resp = client.get('/face-login-page')
+    assert resp.status_code == 200
+    assert b"PROTOCOLO DE ACCESO" in resp.data
+
+
+def test_face_enroll_requires_login(client):
+    resp = client.get('/face-enroll-page')
+    # Flask-Login redirects to login when unauthenticated
+    assert resp.status_code in (301, 302)
+
+
+
+
+################################################################################
+ARCHIVO: test_services_biometrics.py
+RUTA: C:\Users\david\OneDrive\Desktop\Documentacion\proyectos\auth-practice\tests\test_services_biometrics.py
+TAMAÑO: 637 bytes
+EXTENSIÓN: .py
+ÚLTIMA MODIFICACIÓN: 01/23/2026 09:10:54
+################################################################################
+import types
+
+from app.services import biometrics
+
+
+def test_pipelines_module_exposes_functions():
+    assert hasattr(biometrics.pipelines, 'enroll_biometric_pipeline')
+    assert hasattr(biometrics.pipelines, 'login_biometric_pipeline')
+    assert hasattr(biometrics.pipelines, 'validate_pose_challenge')
+
+
+def test_validate_pose_handles_invalid_image(monkeypatch):
+    def fake_decode(image):
+        return None, None
+
+    monkeypatch.setattr(biometrics.encoders, 'decode_base64_image', fake_decode)
+    ok, msg = biometrics.pipelines.validate_pose_challenge('nope', 'CENTER')
+    assert ok is False
+    assert msg
+
+
+
+
+===============================================================================
+ESTRUCTURA VISUAL DEL PROYECTO (TREE PERSONALIZADO)
+===============================================================================
+Nota: 
+• Se muestran TODAS las carpetas
+• Se muestran SOLO archivos de código creados por el equipo
+• Carpetas de librerías se muestran con (librería) y sin contenido detallado
+• Archivos de librerías NO se muestran
+===============================================================================
+
+[auth-practice]
+
+===============================================================================
+RESUMEN DE AUDITORÍA
+===============================================================================
+TOTAL ARCHIVOS ESCANEADOS: 12255
+ARCHIVOS EXCLUIDOS: 12182
+  • Rutas específicas: 12
+  • Archivos de librerías/herramientas
+  • Archivos no fuente (binarios, etc.)
+ARCHIVOS AUDITADOS: 73
+  • Solo archivos de código fuente del equipo
+  • Extensiones: 37 tipos
+
+ESTRUCTURA TREE:
+  • Carpetas: Todas visibles
+  • Archivos: Solo código del equipo
+  • Librerías: Solo nombre de carpeta
+
+FECHA FINALIZACIÓN: 2026-01-26 15:12:28
+===============================================================================

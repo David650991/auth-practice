@@ -1,0 +1,328 @@
+/* app/static/css/modules/biometric/face_enroll.css */
+/* V1.0: Compact HUD Enroll Interface */
+
+:root {
+    --enroll-accent: #00f0ff;
+    --enroll-bg: var(--bg-base, #050505);
+    --enroll-panel: var(--bg-panel-strong, #0b1220);
+    --enroll-border: var(--border-soft, #1f2933);
+    --enroll-success: #3fb950;
+    --enroll-warning: #f0a500;
+}
+
+/* Zero Scroll Layout */
+body {
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Main Container */
+.enroll-container {
+    width: 100%;
+    height: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 0.75rem 1rem;
+    gap: 0.5rem;
+}
+
+/* Header */
+.enroll-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid rgba(0, 240, 255, 0.15);
+    background: radial-gradient(circle at top, rgba(0,240,255,0.03), transparent 70%);
+}
+
+.enroll-title {
+    margin: 0;
+    color: var(--enroll-accent);
+    font-size: 0.95rem;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 0 0 12px rgba(0, 240, 255, 0.35);
+}
+
+.enroll-subtitle {
+    color: var(--text-muted, #8b949e);
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+/* Main Scanner Area */
+.enroll-main {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    padding: 0.5rem;
+}
+
+.scanner-wrapper,
+#video-wrapper,
+#camera-wrapper {
+    position: relative;
+    height: clamp(200px, 42vh, 320px);
+    aspect-ratio: 0.85;
+    border-radius: 48% / 44%;
+    border: 3px solid rgba(0, 240, 255, 0.3);
+    overflow: hidden;
+    box-shadow: 
+        0 0 40px rgba(0, 240, 255, 0.1),
+        inset 0 0 25px rgba(0, 0, 0, 0.7);
+    background: #000;
+}
+
+.scanner-wrapper video,
+#video-wrapper video,
+#camera-wrapper video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+}
+
+.scanner-guide {
+    position: absolute;
+    inset: 4px;
+    border: 2px dashed rgba(0, 240, 255, 0.2);
+    border-radius: 48% / 44%;
+    pointer-events: none;
+}
+
+.scanner-line,
+#scan-line {
+    position: absolute;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--enroll-success), transparent);
+    top: 0;
+    left: 0;
+    box-shadow: 0 0 12px var(--enroll-success);
+    display: none;
+    animation: enrollScan 2s infinite ease-in-out;
+}
+
+@keyframes enrollScan {
+    0% { top: 5%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 95%; opacity: 0; }
+}
+
+/* Instruction Panel */
+.instruction-panel {
+    position: absolute;
+    bottom: 0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(5, 10, 20, 0.9);
+    border: 1px solid rgba(0, 240, 255, 0.2);
+    border-radius: 8px;
+    padding: 0.4rem 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    max-width: 90%;
+    backdrop-filter: blur(8px);
+}
+
+.instruction-icon {
+    font-size: 0.9rem;
+    color: var(--enroll-accent);
+}
+
+.instruction-label,
+#instruction-text {
+    font-size: 0.65rem;
+    color: var(--text-muted, #8b949e);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Footer Controls */
+.enroll-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.5rem 0;
+}
+
+.status-indicator {
+    font-size: 0.7rem;
+    color: var(--text-muted, #8b949e);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.enroll-btn,
+#capture-btn {
+    background: rgba(0, 20, 30, 0.5);
+    color: var(--enroll-accent);
+    border: 1px solid var(--enroll-accent);
+    padding: 0.65rem 2rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.1);
+}
+
+.enroll-btn:hover:not(:disabled),
+#capture-btn:hover:not(:disabled) {
+    background: rgba(0, 240, 255, 0.12);
+    box-shadow: 0 0 25px var(--enroll-accent);
+    transform: translateY(-1px);
+}
+
+.enroll-btn:disabled,
+#capture-btn:disabled {
+    border-color: var(--enroll-border);
+    color: var(--text-muted, #8b949e);
+    cursor: not-allowed;
+    box-shadow: none;
+    opacity: 0.6;
+}
+
+.cancel-link {
+    font-size: 0.7rem;
+    letter-spacing: 1px;
+    color: var(--text-muted, #8b949e);
+    transition: color 0.2s ease;
+}
+
+.cancel-link:hover {
+    color: var(--enroll-accent);
+}
+
+/* Security Overlay (Captcha) */
+.security-overlay,
+#captcha-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 5, 5, 0.97);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(12px);
+    padding: 1.5rem;
+    gap: 0.75rem;
+}
+
+.security-title {
+    margin: 0;
+    color: var(--enroll-accent);
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    text-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}
+
+.security-subtitle {
+    color: var(--text-muted, #8b949e);
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    margin: 0;
+}
+
+.captcha-matrix,
+.captcha-grid,
+.node-grid,
+#captcha-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 70px);
+    gap: 12px;
+    margin-top: 1rem;
+    background: rgba(10, 20, 35, 0.8);
+    padding: 1rem;
+    border-radius: 12px;
+    border: 1px solid rgba(0, 240, 255, 0.15);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+}
+
+.captcha-node,
+.captcha-item {
+    width: 70px;
+    height: 70px;
+    background: var(--enroll-panel);
+    border: 1px solid var(--enroll-border);
+    border-radius: 10px;
+    color: var(--text-primary, #c9d1d9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.6rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.captcha-node:hover,
+.captcha-item:hover {
+    border-color: var(--enroll-accent);
+    color: var(--enroll-accent);
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+    transform: scale(1.05);
+}
+
+/* Blur Effect for Main Content */
+.blur-active,
+.blur-content {
+    filter: blur(6px);
+    pointer-events: none;
+}
+
+/* Hidden Canvas */
+.hidden-canvas {
+    display: none;
+}
+
+/* Responsive Adjustments */
+@media (max-height: 600px) {
+    .enroll-container {
+        padding: 0.5rem;
+    }
+    
+    .scanner-wrapper {
+        height: clamp(180px, 38vh, 260px);
+    }
+    
+    .enroll-btn {
+        padding: 0.5rem 1.5rem;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .enroll-title {
+        font-size: 0.8rem;
+        letter-spacing: 2px;
+    }
+    
+    .captcha-matrix {
+        grid-template-columns: repeat(3, 60px);
+        gap: 10px;
+    }
+    
+    .captcha-node {
+        width: 60px;
+        height: 60px;
+        font-size: 1.4rem;
+    }
+}

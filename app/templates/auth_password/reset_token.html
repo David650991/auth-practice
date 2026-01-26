@@ -1,0 +1,17 @@
+{% extends "layouts/base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/modules/forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<section class="main-container">
+  <h2 class="instruction">Crear Nueva Contraseña</h2>
+  <p class="form-meta">Genera una clave reforzada para cerrar cualquier brecha.</p>
+
+  <form class="form-stack" method="POST">
+    <input type="password" name="password" placeholder="Nueva contraseña" required autocomplete="new-password">
+    <small class="form-meta">Requisito: mínimo 8 caracteres, 1 mayúscula, 1 número, 1 símbolo.</small>
+    <button type="submit" class="cta-button">Actualizar contraseña</button>
+  </form>
+</section>
+{% endblock %}
