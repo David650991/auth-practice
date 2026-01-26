@@ -13,6 +13,10 @@ import dlib
 import os
 from scipy.spatial import distance as dist
 
+from app.logging_config import get_logger
+
+logger = get_logger('biometrics.pose_checks')
+
 # --- CONFIGURACIÓN ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MODEL_PATH = os.path.join(BASE_DIR, 'static', 'models', 'shape_predictor_68_face_landmarks.dat')
@@ -21,10 +25,11 @@ predictor = None
 try:
     if os.path.exists(MODEL_PATH):
         predictor = dlib.shape_predictor(MODEL_PATH)
+        logger.info("Modelo de landmarks cargado correctamente")
     else:
-        print("CRITICAL: Modelo de landmarks no encontrado.")
+        logger.warning(f"Modelo de landmarks no encontrado en: {MODEL_PATH}")
 except Exception as e:
-    print(f"CRITICAL: Error cargando Dlib: {e}")
+    logger.error(f"Error cargando Dlib: {e}", exc_info=True)
 
 # Puntos clave
 NOSE_TIP = 30
@@ -179,5 +184,5 @@ def analyze_face_structure(gray_image, rect, img_width, img_height):
         return True, "Calidad Biométrica Aceptada"
 
     except Exception as e:
-        print(f"Error lógica bio: {e}")
+        logger.error(f"Error en análisis de estructura facial: {e}", exc_info=True)
         return False, "Error de análisis biométrico."

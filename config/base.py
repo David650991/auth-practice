@@ -22,6 +22,13 @@ class BaseConfig:
     RATELIMIT_DEFAULT = "5 per minute"
     RATELIMIT_STORAGE_URI = os.getenv("RATELIMIT_STORAGE_URI", "memory://")
 
+    # SMS Provider: 'simulator' | 'twilio'
+    SMS_PROVIDER = os.getenv("SMS_PROVIDER", "simulator")
+    TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+    TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+    TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER")
+
     # Otros ajustes globales
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
+

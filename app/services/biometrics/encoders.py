@@ -11,6 +11,10 @@ import cv2
 import numpy as np
 import face_recognition
 
+from app.logging_config import get_logger
+
+logger = get_logger('biometrics.encoders')
+
 
 def decode_base64_image(image_data):
     """
@@ -34,6 +38,7 @@ def decode_base64_image(image_data):
         img_bgr = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         
         if img_bgr is None:
+            logger.warning("cv2.imdecode retornó None - imagen corrupta")
             return None, None
         
         # Convertir a escala de grises
@@ -42,7 +47,7 @@ def decode_base64_image(image_data):
         return img_bgr, img_gray
     
     except Exception as e:
-        print(f"Error decodificando imagen: {e}")
+        logger.error(f"Error decodificando imagen Base64: {e}", exc_info=True)
         return None, None
 
 
@@ -59,9 +64,10 @@ def detect_faces(image_gray, model="hog"):
     """
     try:
         boxes = face_recognition.face_locations(image_gray, model=model)
+        logger.debug(f"Rostros detectados: {len(boxes)}")
         return boxes
     except Exception as e:
-        print(f"Error detectando rostros: {e}")
+        logger.error(f"Error detectando rostros: {e}", exc_info=True)
         return []
 
 
@@ -85,10 +91,11 @@ def extract_face_encodings(image_bgr, face_boxes):
         
         # Generar encodings
         encodings = face_recognition.face_encodings(img_rgb, face_boxes)
+        logger.debug(f"Encodings extraídos: {len(encodings)}")
         return encodings
     
     except Exception as e:
-        print(f"Error extrayendo encodings: {e}")
+        logger.error(f"Error extrayendo encodings: {e}", exc_info=True)
         return []
 
 

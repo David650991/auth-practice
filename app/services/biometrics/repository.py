@@ -10,6 +10,9 @@ import pickle
 import face_recognition
 from app import db
 from app.models import User
+from app.logging_config import get_logger
+
+logger = get_logger('biometrics.repository')
 
 
 def save_face_encoding(user, encoding):
@@ -24,12 +27,12 @@ def save_face_encoding(user, encoding):
         bool: True si se guardó exitosamente, False si hubo error
     """
     try:
-        # Serializar el encoding a bytes usando pickle
         user.face_encoding = pickle.dumps(encoding)
         db.session.commit()
+        logger.info(f"Encoding guardado para usuario {user.id}")
         return True
     except Exception as e:
-        print(f"Error guardando encoding: {e}")
+        logger.error(f"Error guardando encoding para usuario {user.id}: {e}", exc_info=True)
         db.session.rollback()
         return False
 
@@ -50,7 +53,7 @@ def load_face_encoding(user):
         encoding = pickle.loads(user.face_encoding)
         return encoding
     except Exception as e:
-        print(f"Error cargando encoding: {e}")
+        logger.error(f"Error cargando encoding para usuario {user.id}: {e}", exc_info=True)
         return None
 
 
@@ -63,9 +66,10 @@ def get_all_face_encodings():
     """
     try:
         users = User.query.filter(User.face_encoding.isnot(None)).all()
+        logger.debug(f"Usuarios con encoding: {len(users)}")
         return users
     except Exception as e:
-        print(f"Error obteniendo encodings: {e}")
+        logger.error(f"Error obteniendo encodings: {e}", exc_info=True)
         return []
 
 
@@ -77,7 +81,6 @@ def compare_faces(known_encoding, unknown_encoding, tolerance=0.45):
         known_encoding (ndarray): Encoding conocido (de base de datos)
         unknown_encoding (ndarray): Encoding desconocido (capturado en tiempo real)
         tolerance (float): Umbral de tolerancia (0.0-1.0). Valores más bajos = más estricto.
-                          Por defecto 0.45 es estricto pero equilibrado.
     
     Returns:
         bool: True si los rostros coinciden, False en caso contrario
@@ -90,7 +93,7 @@ def compare_faces(known_encoding, unknown_encoding, tolerance=0.45):
         )
         return matches[0] if matches else False
     except Exception as e:
-        print(f"Error comparando encodings: {e}")
+        logger.error(f"Error comparando encodings: {e}", exc_info=True)
         return False
 
 
@@ -114,11 +117,13 @@ def find_matching_user(unknown_encoding, tolerance=0.45):
                 continue
             
             if compare_faces(known_encoding, unknown_encoding, tolerance):
+                logger.info(f"Match encontrado: usuario {user.id}")
                 return user
         
+        logger.debug("No se encontró match")
         return None
     except Exception as e:
-        print(f"Error buscando usuario coincidente: {e}")
+        logger.error(f"Error buscando usuario coincidente: {e}", exc_info=True)
         return None
 
 
@@ -135,8 +140,9 @@ def clear_face_encoding(user):
     try:
         user.face_encoding = None
         db.session.commit()
+        logger.info(f"Encoding eliminado para usuario {user.id}")
         return True
     except Exception as e:
-        print(f"Error eliminando encoding: {e}")
+        logger.error(f"Error eliminando encoding para usuario {user.id}: {e}", exc_info=True)
         db.session.rollback()
         return False

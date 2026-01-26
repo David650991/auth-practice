@@ -40,14 +40,10 @@
 </div>
 
 <script>
-    window.BIOMETRIC_CONFIG = {
+    window.__ENROLL_CONFIG__ = {
         enrollUrl: "{{ url_for('auth.face_enroll') }}",
-        csrfToken: "{{ csrf_token() if csrf_token else '' }}"
+        csrfToken: "{{ csrf_token() }}"
     };
-
-    document.getElementById('capture-btn').addEventListener('click', function() {
-        document.getElementById('scan-line').style.display = 'block';
-    });
 </script>
 <script type="module" src="{{ url_for('static', filename='js/face_enroll/index.js') }}"></script>
 {% endblock %}

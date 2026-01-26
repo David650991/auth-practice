@@ -1,8 +1,8 @@
-from flask import render_template, redirect, url_for, flash, request, session
+from flask import render_template, redirect, url_for, flash, request, session, current_app
 from flask_login import login_user, login_required, current_user
 from app import db, limiter
 from app.models import User
-from ..utils import send_sms_code
+from app.services.sms import get_sms_provider
 from .. import auth
 import pyotp, qrcode, io, base64, secrets
 
@@ -51,8 +51,15 @@ def send_sms_verification():
         flash('Tu teléfono ya está verificado.', 'info')
         return redirect(url_for('main.dashboard'))
 
-    code = send_sms_code(current_user.phone_number)
-    session['sms_validation_code'] = code
+    sms_provider = get_sms_provider(current_app.config)
+    result = sms_provider.send_verification_code(current_user.phone_number)
+    
+    if result.success:
+        session['sms_validation_code'] = result.code
+        flash(result.message, 'info')
+    else:
+        flash(result.message, 'danger')
+        return redirect(url_for('main.dashboard'))
     
     return redirect(url_for('auth.verify_sms_page'))
 

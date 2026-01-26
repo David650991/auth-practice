@@ -1,9 +1,10 @@
-from flask import url_for, flash
+from flask import url_for
 from flask_mail import Message
 from app import mail
-import random
+
 
 def send_email(to, subject, template):
+    """Envía un email HTML."""
     msg = Message(
         subject,
         recipients=[to],
@@ -12,7 +13,9 @@ def send_email(to, subject, template):
     )
     mail.send(msg)
 
+
 def send_confirmation_email(user):
+    """Envía email de confirmación de cuenta."""
     token = user.get_token(salt='email-confirm-salt')
     link = url_for('auth.confirm_email', token=token, _external=True)
     html_body = f'''
@@ -23,7 +26,9 @@ def send_confirmation_email(user):
     '''
     send_email(user.email, 'Confirma tu Cuenta', html_body)
 
+
 def send_reset_email(user):
+    """Envía email de recuperación de contraseña."""
     token = user.get_token(salt='password-reset-salt')
     link = url_for('auth.reset_token', token=token, _external=True)
     html_body = f'''
@@ -33,17 +38,3 @@ def send_reset_email(user):
     <p>Si no fuiste tú, ignora este mensaje.</p>
     '''
     send_email(user.email, 'Solicitud de Cambio de Contraseña', html_body)
-
-# --- NUEVA FUNCIÓN: SIMULADOR DE SMS ---
-def send_sms_code(phone_number):
-    # 1. Generar código de 6 dígitos
-    code = str(random.randint(100000, 999999))
-    
-    # 2. Simulación en Terminal (Para el Admin)
-    print(f"\n[SMS GATEWAY SIMULATION] Enviando SMS a {phone_number}: {code}\n")
-    
-    # 3. Simulación Visual (Para el Usuario Tester)
-    # Esto muestra el código en la pantalla web para que puedan probar sin gastar saldo
-    flash(f'[DEV MODE] SMS enviado a {phone_number}. Tu código es: {code}', 'info')
-    
-    return code

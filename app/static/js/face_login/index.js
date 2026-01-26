@@ -1,5 +1,6 @@
 import { initCaptcha } from './captcha.js';
 import { captureLogin } from './liveness.js';
+import { getConfig } from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const statusEl = document.getElementById('status');
@@ -8,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const instruction = document.getElementById('instruction-text');
     const layer = document.getElementById('security-layer');
     const loginBtn = document.getElementById('btn-login');
+    const scanFx = document.getElementById('scan-fx');
+
+    const CONFIG = getConfig();
 
     if (statusEl) statusEl.innerText = '[SISTEMA] INICIALIZANDO PROTOCOLO DE DEFENSA...';
 
@@ -15,10 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (loginBtn) {
         loginBtn.addEventListener('click', () => {
+            if (scanFx) scanFx.style.display = 'block';
             captureLogin({
                 videoEl,
                 statusEl,
-                csrfToken: window.CONFIG ? window.CONFIG.csrf_token : ''
+                csrfToken: CONFIG.csrfToken
             });
         });
     }

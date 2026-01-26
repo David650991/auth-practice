@@ -1,5 +1,6 @@
 import { runPoseChallenge } from './poseLoop.js';
 import { finalizeEnrollment } from './enrollRequest.js';
+import { getConfig } from './config.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const video = document.getElementById('video');
@@ -12,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const captchaGrid = document.getElementById('captcha-grid');
     const mainContent = document.getElementById('main-content');
 
-    const CONFIG = window.BIOMETRIC_CONFIG;
+    const CONFIG = getConfig();
     let challengeStep = 0;
 
     const securityIcons = [

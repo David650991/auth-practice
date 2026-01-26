@@ -36,14 +36,9 @@
 </div>
 
 <script>
-    window.CONFIG = {
-        csrf_token: "{{ csrf_token() if csrf_token else '' }}"
+    window.__LOGIN_CONFIG__ = {
+        csrfToken: "{{ csrf_token() }}"
     };
-    
-    // Script visual para activar el láser al hacer click
-    document.getElementById('btn-login').addEventListener('click', function() {
-        document.getElementById('scan-fx').style.display = 'block';
-    });
 </script>
 <script type="module" src="{{ url_for('static', filename='js/face_login/index.js') }}"></script>
 {% endblock %}
