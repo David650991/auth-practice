@@ -1,3 +1,50 @@
+## Python
 venv/
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+## Environment
 .env
+.env.*
+
+## IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+## Database
+instance/
+*.db
+*.sqlite
+*.sqlite3
+
+## Models (descargar con setup_models.py)
+app/static/models/*.dat
+app/static/models/*.bz2
+
+## Binarios/Wheels
+*.whl
+*.egg
+*.egg-info/
+dist/
+build/
+
+## Archivos temporales
+*.log
+*.tmp
+*.bak
+*.txt
+!requirements.txt
+
+## Cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+## OS
+.DS_Store
+Thumbs.db
